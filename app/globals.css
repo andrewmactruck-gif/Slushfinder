@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', system-ui, sans-serif; }
+
+/* ── DARK MODE VARIABLES (default) ───────────────────────── */
+:root {
+  --bg:       #0a0c0f;
+  --s1:       #111318;
+  --s2:       #1e2229;
+  --b1:       #1e2840;
+  --b2:       #252d3d;
+  --cyan:     #00e5ff;
+  --purple:   #9c27ff;
+  --t1:       #ffffff;
+  --t2:       #a8b0c0;
+  --t3:       #5a6272;
+  --green:    #00e596;
+  --red:      #ff4444;
+  --amber:    #ffb400;
+  --shadow:   rgba(0,0,0,0.4);
+  --grad:     linear-gradient(135deg, #00e5ff, #9c27ff);
+}
+
+/* ── LIGHT MODE VARIABLES ─────────────────────────────────── */
+.light {
+  --bg:       #f0f4f8;
+  --s1:       #ffffff;
+  --s2:       #e8eef5;
+  --b1:       #d0dbe8;
+  --b2:       #c2cfdc;
+  --cyan:     #007abc;
+  --purple:   #6c1eb0;
+  --t1:       #0d1117;
+  --t2:       #3f4f62;
+  --t3:       #8095a8;
+  --green:    #0a7c4e;
+  --red:      #c0392b;
+  --amber:    #b06d00;
+  --shadow:   rgba(0,90,150,0.10);
+  --grad:     linear-gradient(135deg, #007abc, #6c1eb0);
+}
+
+/* ── SHARED COMPONENT STYLES ─────────────────────────────── */
+.app-bg        { background: var(--bg); }
+.surface       { background: var(--s1); border: 1px solid var(--b1); }
+.surface2      { background: var(--s2); border: 1px solid var(--b1); }
+.text-primary  { color: var(--t1); }
+.text-secondary{ color: var(--t2); }
+.text-muted    { color: var(--t3); }
+.border-app    { border-color: var(--b1); }
+.accent        { color: var(--cyan); }
+.grad-text     { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.btn-grad      { background: var(--grad); color: #fff; border: none; cursor: pointer; font-weight: 800; }
+.light .btn-grad { color: #fff; }
+.card-hover:hover { border-color: var(--cyan) !important; opacity: .92; }
+.fchip-style   { background: rgba(0,122,188,0.08); color: var(--cyan); border: 1px solid rgba(0,122,188,0.18); }
+.dark .fchip-style { background: rgba(0,229,255,0.07); color: #00e5ff; border-color: rgba(0,229,255,0.15); }
+
+/* ── THEME TOGGLE ANIMATION ──────────────────────────────── */
+.theme-transition * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* ── LIGHT MODE SPECIFIC OVERRIDES ──────────────────────── */
+.light .topbar-glass {
+  background: rgba(240,244,248,0.92) !important;
+  box-shadow: 0 1px 12px rgba(0,90,150,0.08);
+}
+.light .map-bg-color { background: #d8eaf5 !important; }
+.light .map-grid-lines {
+  background-image: linear-gradient(rgba(0,90,150,.06) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,90,150,.06) 1px, transparent 1px) !important;
+}
+.light .map-road-color { background: rgba(0,90,150,0.1) !important; }
+.light .pin-label {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,122,188,0.4) !important;
+  color: var(--cyan) !important;
+}
+.light .announce-pill {
+  background: rgba(0,122,188,0.08) !important;
+  border-color: rgba(0,122,188,0.25) !important;
+  color: var(--cyan) !important;
+}
+.light .botnav-glass {
+  background: rgba(240,244,248,0.97) !important;
+  box-shadow: 0 -2px 12px rgba(0,90,150,0.06);
+}
