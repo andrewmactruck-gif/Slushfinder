@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import ThemeInit from '@/components/ThemeInit'
 import './globals.css'
+import SiteFooter from '@/components/SiteFooter'
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.slushfinder.com'),
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeInit />
         <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto min-h-screen app-bg relative">
           {children}
+          <SiteFooter />
         </div>
       </body>
     </html>

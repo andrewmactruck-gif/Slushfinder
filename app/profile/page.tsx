@@ -31,6 +31,37 @@ export default function ProfilePage() {
     setProfile(data); setLoading(false)
   }
 
+  const [uploading, setUploading] = useState(false)
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+    if (!file.type.startsWith('image/')) { alert('Please choose an image file.'); return }
+    if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); return }
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${user.id}/avatar.${ext}`
+      const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true })
+      if (upErr) throw upErr
+      const { data: pub } = sb.storage.from('avatars').getPublicUrl(path)
+      const url = pub.publicUrl + '?t=' + Date.now()
+      const { error: dbErr } = await sb.from('profiles').update({ avatar_url: url }).eq('id', user.id)
+      if (dbErr) throw dbErr
+      loadProfile(user.id)
+    } catch (err: any) {
+      alert('Upload failed: ' + (err.message || 'unknown error'))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleEmojiPick = async (emoji: string) => {
+    if (!user) return
+    await sb.from('profiles').update({ emoji, avatar_url: null }).eq('id', user.id)
+    loadProfile(user.id)
+  }
+
   const handleAuth = async () => {
     setAuthErr('')
     if (!email || !pw) { setAuthErr('Please enter your email and password'); return }
@@ -128,9 +159,21 @@ export default function ProfilePage() {
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginBottom:24 }}>
           <div style={{ position:'relative', marginBottom:12 }}>
             <div style={{ width:96, height:96, borderRadius:'50%', background:'var(--grad)', padding:3, display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <div style={{ width:'100%', height:'100%', borderRadius:'50%', background:'var(--s-base)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:36 }}>🧊</div>
+              <div style={{ width:'100%', height:'100%', borderRadius:'50%', background:'var(--s-base)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:36, overflow:'hidden' }}>
+                {profile?.avatar_url
+                  ? <img src={profile.avatar_url} alt="avatar" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                  : (profile?.emoji || '🧊')}
+              </div>
             </div>
-            <div style={{ position:'absolute', bottom:0, right:0, width:26, height:26, borderRadius:'50%', background:'var(--pri)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, border:'2px solid var(--bg)' }}>⭐</div>
+            <label style={{ position:'absolute', bottom:0, right:0, width:28, height:28, borderRadius:'50%', background:'var(--pri)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, border:'2px solid var(--bg)', cursor:'pointer' }}>
+              {uploading ? '…' : '📷'}
+              <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display:'none' }}/>
+            </label>
+          </div>
+          <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap', justifyContent:'center' }}>
+            {['🧊','🍒','🫐','🍋','🍇','🍉','🔥','⭐'].map(em => (
+              <button key={em} onClick={()=>handleEmojiPick(em)} style={{ fontSize:18, width:34, height:34, borderRadius:8, border:'1px solid var(--out-v)', background: profile?.emoji===em && !profile?.avatar_url ? 'var(--pri)' : 'var(--s-base)', cursor:'pointer' }}>{em}</button>
+            ))}
           </div>
           <h1 style={{ fontSize:20, fontWeight:800, color:'var(--t1)', marginBottom:2 }}>{profile?.username?`@${profile.username}`:user.email?.split('@')[0]}</h1>
           {profile?.city && <p style={{ fontSize:12, color:'var(--t3)', display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>📍 {profile.city}</p>}

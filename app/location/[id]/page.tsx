@@ -17,6 +17,11 @@ export default async function LocationPage({ params }: { params: Promise<{ id: s
   const loc = await getLocation(id)
   if (!loc) notFound()
 
+  if (typeof loc.hours === 'string') {
+    try { loc.hours = JSON.parse(loc.hours) } catch { loc.hours = {} }
+  }
+  if (!loc.hours || typeof loc.hours !== 'object') loc.hours = {}
+
   const isOpen = isLocationOpen(loc.hours, loc.timezone)
   const todayKey = getTodayKey(loc.timezone)
   const brandColor = BRAND_COLORS[loc.brand as keyof typeof BRAND_COLORS] ?? BRAND_COLORS['Other']

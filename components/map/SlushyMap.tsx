@@ -44,14 +44,13 @@ export default function SlushyMap({ locations, center, onSelectLocation }: Props
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
       })
 
-      const map = L.map(containerRef.current).setView([center.lat, center.lng], 13)
+      const map = L.map(containerRef.current, { zoomControl: false }).setView([center.lat, center.lng], 13)
 
       // Dark basemap to match the app's palette
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap contributors © CARTO',
-        subdomains: 'abcd',
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
         detectRetina: true,
-        maxZoom: 20,
+        maxZoom: 19,
       }).addTo(map)
 
       leafletRef.current = L

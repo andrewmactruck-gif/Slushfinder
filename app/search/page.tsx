@@ -102,7 +102,7 @@ function SearchPageInner() {
         </div>
 
         {/* SEARCH OVERLAY */}
-        <div style={{ position:'absolute', top:16, left:0, right:0, padding:'0 20px', zIndex:40, display:'flex', flexDirection:'column', gap:10 }}>
+        <div className="search-overlay" style={{ position:'absolute', top:16, left:0, right:0, padding:'0 20px', zIndex:40, display:'flex', flexDirection:'column', gap:10 }}>
           <div style={{ background:'rgba(28,32,33,0.4)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.10)', borderRadius:999, padding:'10px 16px', display:'flex', alignItems:'center', gap:10 }}>
             <span style={{ color:'#74f5ff', fontSize:18, flexShrink:0 }}>🔍</span>
             <div style={{ flex:1 }}>
@@ -122,7 +122,7 @@ function SearchPageInner() {
         </div>
 
         {/* BOTTOM SHEET */}
-        <div style={{
+        <div className="results-sheet" style={{
           position:'absolute', bottom:0, left:0, right:0, zIndex:40,
           background:'rgba(11,15,16,0.80)', backdropFilter:'blur(24px)',
           borderTop:'1px solid rgba(255,255,255,0.10)',
