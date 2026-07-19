@@ -38,6 +38,23 @@ export default function LocationCard({ location: loc, unit, strings }: Props) {
           ? `, ${loc.country_name ?? loc.country_code}` : ''}
       </p>
 
+      {/* Verified badge — shows until 10 check-ins */}
+      {!(loc as any).is_verified && (
+        <div className="flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-lg bg-amber-500/8 border border-amber-500/20 w-fit">
+          <AlertTriangle size={10} className="text-amber-400 shrink-0" />
+          <span className="text-[10px] font-semibold text-amber-400">Not a verified location</span>
+          {(loc as any).checkin_count > 0 && (
+            <span className="text-[10px] text-amber-400/60">· {(loc as any).checkin_count}/10 check-ins</span>
+          )}
+        </div>
+      )}
+      {(loc as any).is_verified && (loc as any).checkin_count >= 10 && (
+        <div className="flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-lg bg-emerald-500/8 border border-emerald-500/20 w-fit">
+          <CheckCircle size={10} className="text-emerald-400 shrink-0" />
+          <span className="text-[10px] font-semibold text-emerald-400">Community verified · {(loc as any).checkin_count} check-ins</span>
+        </div>
+      )}
+
       {/* Flavours */}
       {flavours.length > 0 && (
         <div className="flex gap-1.5 flex-wrap mb-2">
@@ -73,6 +90,9 @@ export default function LocationCard({ location: loc, unit, strings }: Props) {
           : <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-400"><AlertTriangle size={10} />{strings.issueReported}</span>
         }
         <span className="text-[10px] text-slate-500">{loc.todays_hours}</span>
+        {(loc as any).checkin_count > 0 && (
+          <span className="text-[10px] text-cyan-400/70">📍 {(loc as any).checkin_count} check-ins</span>
+        )}
       </div>
 
       {/* Actions */}

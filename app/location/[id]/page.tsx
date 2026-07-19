@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Navigation, Share2, AlertTriangle, CheckCircle, Phone } from 'lucide-react'
+import ReportIssueButton from '@/components/ReportIssueButton'
 import { isLocationOpen, getTodaysHoursDisplay, WEEK_DAYS, formatDayHours, getTodayKey } from '@/lib/hours'
 import { BRAND_COLORS } from '@/types'
 
@@ -90,10 +91,7 @@ export default async function LocationPage({ params }: { params: Promise<{ id: s
           <div className="mx-4 mb-3 rounded-2xl overflow-hidden border" style={{ background: 'var(--s1)', borderColor: 'var(--b1)' }}>
             <p className="text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-2 border-b" style={{ color: 'var(--t3)', borderColor: 'var(--b1)' }}>Notes</p>
             <p className="px-4 py-3 text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{loc.notes}</p>
-            <button className="w-full flex items-center gap-2 px-4 py-3 text-[13px] border-t" style={{ background: 'none', border: 'none', borderTop: `1px solid var(--b1)`, color: 'var(--red)', cursor: 'pointer', fontFamily: 'inherit' }}
-              onClick={() => alert('Thank you — your report will be reviewed.')}>
-              <AlertTriangle size={14} /> Report an issue
-            </button>
+            <ReportIssueButton />
           </div>
         )}
       </div>

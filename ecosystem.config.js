@@ -14,7 +14,7 @@ module.exports = {
     cwd:         '/var/www/slushfinder',
     env: {
       NODE_ENV: 'production',
-      PORT:     3000,
+      PORT:     3001,
     },
     max_memory_restart: '512M',
     node_args:          '--max_old_space_size=512',

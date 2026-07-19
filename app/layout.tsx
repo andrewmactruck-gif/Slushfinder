@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next'
+import ThemeInit from '@/components/ThemeInit'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.slushfinder.com'),
   title: 'Slush Finder — Find Slushy Machines Worldwide',
   description: 'Discover Slurpee, ICEE, Slush Puppie, Froster and frozen drink machines anywhere in the world. Search by postcode, ZIP code, or city name.',
   keywords: ['slushy','slurpee','ICEE','froster','slush puppie','frozen drink','locator','worldwide'],
@@ -27,8 +29,17 @@ export const viewport: Viewport = {
 // Inline script to apply theme before paint (avoids flash)
 const themeScript = `
   (function(){
-    var t = localStorage.getItem('sf-theme') || 'dark';
-    document.documentElement.classList.add(t === 'light' ? 'light' : 'dark');
+    try {
+      var t = localStorage.getItem('sf-theme') || 'dark';
+      var root = document.documentElement;
+      if (t === 'light') {
+        root.classList.add('light');
+        root.classList.remove('dark');
+      } else {
+        root.classList.add('dark');
+        root.classList.remove('light');
+      }
+    } catch(e) {}
   })();
 `
 
@@ -44,7 +55,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
             className="app-bg min-h-screen">
-        <div className="max-w-md mx-auto min-h-screen app-bg shadow-xl relative">
+        <ThemeInit />
+        <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto min-h-screen app-bg relative">
           {children}
         </div>
       </body>

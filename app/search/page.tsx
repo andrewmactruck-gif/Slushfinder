@@ -1,49 +1,56 @@
 'use client'
-
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
-import { List, Map as MapIcon } from 'lucide-react'
-import SearchBar from '@/components/SearchBar'
+import Image from 'next/image'
+import ThemeToggle from '@/components/ThemeToggle'
 import BrandFilter from '@/components/BrandFilter'
 import LocationCard from '@/components/LocationCard'
+import SearchBar from '@/components/SearchBar'
 import { LocationWithDistance, Brand, detectLanguage, getStrings, DistanceUnit, Strings } from '@/types'
+import dynamic from 'next/dynamic'
 
 const SlushyMap = dynamic(() => import('@/components/map/SlushyMap'), { ssr: false })
 
 function SearchPageInner() {
   const router = useRouter()
   const params = useSearchParams()
-
-  const lat     = parseFloat(params.get('lat') ?? '0')
-  const lng     = parseFloat(params.get('lng') ?? '0')
-  const label   = params.get('label') ?? ''
+  const lat = parseFloat(params.get('lat') ?? '0')
+  const lng = parseFloat(params.get('lng') ?? '0')
+  const label = params.get('label') ?? ''
   const country = params.get('country') ?? ''
   const initUnit = (params.get('unit') ?? 'km') as DistanceUnit
-
   const [locations, setLocations] = useState<LocationWithDistance[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [view, setView]           = useState<'list' | 'map'>('list')
-  const [brand, setBrand]         = useState<Brand | 'all'>('all')
-  const [radius, setRadius]       = useState(10)
-  const [openNow, setOpenNow]     = useState(false)
-  const [unit, setUnit]           = useState<DistanceUnit>(initUnit)
-  const [strings, setStrings]     = useState<Strings>(getStrings('en'))
+  const [loading, setLoading] = useState(true)
+  const [brand, setBrand] = useState<Brand|'all'>('all')
+  const [radius, setRadius] = useState(25)
+  const [openNow, setOpenNow] = useState(false)
+  const [unit, setUnit] = useState<DistanceUnit>(initUnit)
+  const [strings, setStrings] = useState<Strings>(getStrings('en'))
+  const [collapsed, setCollapsed] = useState(false)
+  const [detectedCountry, setDetectedCountry] = useState(country)
 
   useEffect(() => {
-    setStrings(getStrings(detectLanguage()))
-  }, [])
+    if (!country && lat && lng) {
+      // Detect country from coordinates using reverse geocoding
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, {
+        headers: { 'User-Agent': 'SlushFinder/1.0' }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.address?.country_code) setDetectedCountry(d.address.country_code.toUpperCase()) })
+        .catch(() => {})
+    } else if (country) {
+      setDetectedCountry(country)
+    }
+  }, [country, lat, lng])
+
+  useEffect(() => { setStrings(getStrings(detectLanguage())) }, [])
 
   const fetchLocations = useCallback(async () => {
+    if (!lat || !lng) { setLoading(false); return }
     setLoading(true)
     try {
-      const qs = new URLSearchParams({
-        lat: lat.toString(), lng: lng.toString(), radius: radius.toString(),
-        ...(brand !== 'all' ? { brand } : {}),
-        ...(openNow ? { open_now: 'true' } : {}),
-        ...(country ? { country } : {}),
-      })
-      const res = await fetch(`/api/search?${qs}`)
+      const qs = new URLSearchParams({ lat: lat.toString(), lng: lng.toString(), radius: radius.toString(), ...(brand !== 'all' ? { brand } : {}), ...(openNow ? { open_now: 'true' } : {}), ...(country ? { country } : {}) })
+      const res = await fetch('/api/search?' + qs)
       const data = await res.json()
       setLocations(data.locations ?? [])
     } catch { setLocations([]) }
@@ -53,124 +60,184 @@ function SearchPageInner() {
   useEffect(() => { fetchLocations() }, [fetchLocations])
 
   const handleNewSearch = useCallback((nlat: number, nlng: number, nlabel: string, ncc?: string) => {
-    const p = new URLSearchParams({
-      lat: nlat.toString(), lng: nlng.toString(), label: nlabel, unit,
-      ...(ncc ? { country: ncc } : {}),
-    })
-    router.push(`/search?${p}`)
+    const p = new URLSearchParams({ lat: nlat.toString(), lng: nlng.toString(), label: nlabel, unit, ...(ncc ? { country: ncc } : {}) })
+    router.push('/search?' + p)
   }, [router, unit])
 
+  const handleGps = () => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(pos => {
+      const p = new URLSearchParams({ lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString(), label: 'Current location', unit: 'km' })
+      router.push('/search?' + p)
+    })
+  }
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0c0f]">
-      {/* Top bar */}
-      <header className="bg-[#0a0c0f]/90 backdrop-blur-xl border-b border-[#1e2840] px-4 py-3 sticky top-0 z-10 space-y-2">
-        <div className="flex items-center gap-3">
-          <a href="/" className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shrink-0">
-            <span className="text-black font-black text-[12px] font-space">S</span>
-          </a>
-          <div className="flex-1">
-            <SearchBar onSearch={handleNewSearch} strings={strings} compact initialValue={label} />
-          </div>
-          <button onClick={() => setUnit(u => u === 'km' ? 'mi' : 'km')}
-            className="text-[10px] font-bold px-2 py-1 rounded-full border border-[#1e2840] text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400 transition-colors shrink-0">
-            {unit}
-          </button>
+    <div style={{ background:'#0b0f10', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'"Space Grotesk",system-ui,sans-serif', color:'#e0e3e4', overflow:'hidden' }}>
+
+      {/* Aurora glows */}
+      <div style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:0 }}>
+        <div style={{ position:'absolute', width:300, height:300, top:80, left:-80, background:'radial-gradient(circle,rgba(182,0,248,0.10),transparent 70%)', filter:'blur(60px)' }}/>
+        <div style={{ position:'absolute', width:300, height:300, bottom:160, right:-80, background:'radial-gradient(circle,rgba(0,219,231,0.15),transparent 70%)', filter:'blur(60px)' }}/>
+      </div>
+
+      {/* TOPBAR */}
+      <header style={{ position:'fixed', top:0, left:0, width:'100%', zIndex:50, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0 20px', height:64, background:'rgba(16,20,21,0.40)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,255,255,0.10)' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <Image src="/logo.png" alt="" width={28} height={28} className="rounded-lg logo-blend"/>
+          <span style={{ fontSize:18, fontWeight:700, letterSpacing:'-.02em', color:'#00dbe7' }}>SlushFinder</span>
+        </div>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <ThemeToggle/>
+          <button onClick={()=>setUnit(u=>u==='km'?'mi':'km')} style={{ fontSize:10, fontWeight:700, padding:'4px 10px', borderRadius:999, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(28,32,33,0.6)', color:'#b9cacb', cursor:'pointer', fontFamily:'inherit' }}>{unit}</button>
         </div>
       </header>
 
-      {/* Brand filter */}
-      <div className="bg-[#0a0c0f] border-b border-[#1e2840] py-2">
-        <BrandFilter active={brand} onChange={b => setBrand(b)} />
-      </div>
+      {/* MAIN */}
+      <main style={{ flex:1, position:'relative', marginTop:64, overflow:'hidden' }}>
 
-      {/* Results bar */}
-      <div className="flex items-center justify-between px-4 py-2.5">
-        <p className="text-[11px] text-slate-400">
-          {loading ? 'Searching…' : (
-            <><span className="font-bold text-white">{locations.length}</span> {strings.foundNearby} · <span className="text-cyan-400">{label}</span></>
-          )}
-        </p>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setOpenNow(v => !v)}
-            className={`h-6 px-2.5 text-[10px] font-bold rounded-full border transition-colors ${
-              openNow ? 'bg-cyan-500 text-black border-cyan-500' : 'bg-transparent text-slate-400 border-[#1e2840]'
-            }`}>
-            {strings.openNow}
-          </button>
-          <select value={radius} onChange={e => setRadius(Number(e.target.value))}
-            className="h-6 text-[10px] border border-[#1e2840] rounded-full px-2 bg-[#111318] text-slate-400">
-            <option value={5}>5 km</option>
-            <option value={10}>10 km</option>
-            <option value={25}>25 km</option>
-            <option value={50}>50 km</option>
-            <option value={100}>100 km</option>
-          </select>
-          <div className="flex border border-[#1e2840] rounded-lg overflow-hidden">
-            <button onClick={() => setView('list')}
-              className={`w-7 h-6 flex items-center justify-center ${view==='list' ? 'bg-cyan-500 text-black' : 'text-slate-500 hover:text-slate-300'}`}>
-              <List size={12} />
-            </button>
-            <button onClick={() => setView('map')}
-              className={`w-7 h-6 flex items-center justify-center ${view==='map' ? 'bg-cyan-500 text-black' : 'text-slate-500 hover:text-slate-300'}`}>
-              <MapIcon size={12} />
+        {/* MAP BACKGROUND */}
+        <div style={{ position:'absolute', inset:0, zIndex:0 }}>
+          <SlushyMap locations={locations} center={{ lat, lng }}/>
+        </div>
+
+        {/* SEARCH OVERLAY */}
+        <div style={{ position:'absolute', top:16, left:0, right:0, padding:'0 20px', zIndex:40, display:'flex', flexDirection:'column', gap:10 }}>
+          <div style={{ background:'rgba(28,32,33,0.4)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.10)', borderRadius:999, padding:'10px 16px', display:'flex', alignItems:'center', gap:10 }}>
+            <span style={{ color:'#74f5ff', fontSize:18, flexShrink:0 }}>🔍</span>
+            <div style={{ flex:1 }}>
+              <SearchBar onSearch={handleNewSearch} strings={strings} compact initialValue={label}/>
+            </div>
+            <span style={{ color:'#849495', fontSize:16, flexShrink:0 }}>⚙</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(39,43,44,0.80)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:999, padding:'5px 12px' }}>
+              <span style={{ fontSize:12, color:'#74f5ff' }}>📍</span>
+              <span style={{ fontSize:11, fontWeight:600, letterSpacing:'.05em', color:'#74f5ff', fontFamily:'"JetBrains Mono",monospace' }}>{label || 'Current Location'}</span>
+            </div>
+            <button onClick={handleGps} style={{ fontSize:11, fontWeight:500, color:'#ebb2ff', background:'none', border:'none', cursor:'pointer', fontFamily:'"JetBrains Mono",monospace', textDecoration:'underline', letterSpacing:'.05em' }}>
+              Use my current location
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Map view */}
-      {view === 'map' && !loading && (
-        <div className="mx-4 mb-3 rounded-2xl overflow-hidden border border-[#1e2840]" style={{ height: 240 }}>
-          <SlushyMap locations={locations} center={{ lat, lng }} />
-        </div>
-      )}
+        {/* BOTTOM SHEET */}
+        <div style={{
+          position:'absolute', bottom:0, left:0, right:0, zIndex:40,
+          background:'rgba(11,15,16,0.80)', backdropFilter:'blur(24px)',
+          borderTop:'1px solid rgba(255,255,255,0.10)',
+          borderRadius:'2.5rem 2.5rem 0 0',
+          boxShadow:'0 -20px 50px rgba(0,0,0,0.5)',
+          transform: collapsed ? 'translateY(calc(100% - 140px))' : 'translateY(0)',
+          transition:'transform 0.4s cubic-bezier(0.33,1,0.68,1)',
+          maxHeight:'85vh',
+          display:'flex', flexDirection:'column',
+        }}>
+          {/* Handle */}
+          <div onClick={()=>setCollapsed(c=>!c)} style={{ padding:'16px 0 8px', display:'flex', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+            <div style={{ width:48, height:4, background:'rgba(255,255,255,0.20)', borderRadius:999 }}/>
+          </div>
 
-      {/* List */}
-      <div className="flex-1 px-4 pb-24 space-y-3">
-        {loading
-          ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-[#111318] rounded-2xl p-4 animate-pulse space-y-3 border border-[#1e2840]">
-                <div className="flex justify-between"><div className="h-4 bg-[#1e2229] rounded w-2/3" /><div className="h-5 bg-[#1e2229] rounded-full w-16" /></div>
-                <div className="h-3 bg-[#1e2229] rounded w-full" />
-                <div className="flex gap-2"><div className="h-3 bg-[#1e2229] rounded w-20" /><div className="h-3 bg-[#1e2229] rounded w-16" /></div>
-                <div className="flex gap-2 pt-2 border-t border-[#1e2840]"><div className="h-9 bg-[#1e2229] rounded-xl flex-1" /><div className="h-9 bg-[#1e2229] rounded-xl w-20" /></div>
-              </div>
-            ))
-          : locations.length === 0
-          ? (
-            <div className="flex flex-col items-center py-16 text-center px-4">
-              <div className="text-4xl mb-4">🧊</div>
-              <p className="text-[14px] font-bold text-white mb-1 font-space">{strings.noMachines}</p>
-              <p className="text-[12px] text-slate-400 leading-relaxed">
-                Try expanding your radius, changing the brand filter, or{' '}
-                <a href="/add" className="text-cyan-400 underline">add a location</a>.
+          {/* Sheet header */}
+          <div style={{ padding:'0 20px 12px', display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexShrink:0 }}>
+            <div>
+              <h2 style={{ fontSize:24, fontWeight:700, color:'#e0e3e4', margin:0, fontFamily:'"Space Grotesk",system-ui,sans-serif' }}>
+                {loading ? 'Scanning...' : locations.length + ' Machine' + (locations.length !== 1 ? 's' : '') + ' Nearby'}
+              </h2>
+              <p style={{ fontSize:11, color:'rgba(185,202,203,0.7)', margin:'2px 0 0', fontFamily:'"JetBrains Mono",monospace', letterSpacing:'.05em' }}>
+                {label || 'Current location'}
               </p>
             </div>
-          )
-          : locations.map(loc => (
-              <LocationCard key={loc.id} location={loc} unit={unit} strings={strings} />
-            ))
-        }
-      </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <select value={radius} onChange={e=>setRadius(Number(e.target.value))} style={{ background:'rgba(49,53,54,0.5)', border:'1px solid rgba(255,255,255,0.10)', borderRadius:10, color:'#b9cacb', fontSize:11, padding:'6px 10px', cursor:'pointer', fontFamily:'inherit' }}>
+                <option value={10}>10 km</option><option value={25}>25 km</option><option value={50}>50 km</option>
+              </select>
+              <button onClick={()=>setOpenNow(o=>!o)} style={{ padding:'6px 12px', borderRadius:10, fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', border:'1px solid '+(openNow?'#74f5ff':'rgba(255,255,255,0.10)'), background:openNow?'rgba(116,245,255,0.10)':'rgba(49,53,54,0.5)', color:openNow?'#74f5ff':'#b9cacb' }}>
+                Open now
+              </button>
+            </div>
+          </div>
 
-      <nav className="bg-[#0a0c0f]/95 backdrop-blur-xl border-t border-[#1e2840] flex sticky bottom-0">
-        <a href="/" className="flex-1 flex flex-col items-center gap-1 py-2.5 text-slate-500 hover:text-slate-300">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-          <span className="text-[9px] font-bold tracking-wider">DISCOVER</span>
-        </a>
-        <a href="/add" className="flex-1 flex flex-col items-center gap-1 py-2.5 text-slate-500 hover:text-slate-300">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-          <span className="text-[9px] font-bold tracking-wider">ADD</span>
-        </a>
-        <button className="flex-1 flex flex-col items-center gap-1 py-2.5 text-cyan-400">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span className="text-[9px] font-bold tracking-wider">STATIONS</span>
-        </button>
+          {/* Brand filter */}
+          <div style={{ flexShrink:0, marginBottom:8 }}>
+            <BrandFilter active={brand} onChange={setBrand} country={detectedCountry}/>
+          </div>
+
+          {/* List */}
+          <div style={{ overflowY:'auto', padding:'0 20px 40px', flex:1 }}>
+            {loading ? (
+              [1,2,3].map(i=>(
+                <div key={i} style={{ background:'rgba(28,32,33,0.4)', borderRadius:16, padding:16, marginBottom:16, height:100, opacity:.4, animation:'pulse 1.5s ease infinite' }}/>
+              ))
+            ) : locations.length === 0 ? (
+              <div style={{ textAlign:'center', padding:'40px 16px', color:'#849495' }}>
+                <div style={{ fontSize:40, marginBottom:12 }}>❄️</div>
+                <p style={{ fontSize:16, fontWeight:700, color:'#e0e3e4', marginBottom:6 }}>No machines found nearby.</p>
+                <p style={{ fontSize:13, lineHeight:1.6 }}>Try expanding your radius or <a href="/add" style={{ color:'#74f5ff' }}>add a location</a>.</p>
+              </div>
+            ) : (
+              locations.map((loc, i) => (
+                <div key={loc.id} style={{
+                  background:'rgba(28,32,33,0.40)', backdropFilter:'blur(12px)',
+                  border:'1px solid rgba(255,255,255,0.10)',
+                  borderLeft: '2px solid ' + (i%2===0 ? '#74f5ff' : '#ebb2ff'),
+                  borderRadius:16, padding:16, marginBottom:16,
+                  display:'flex', gap:16, cursor:'pointer',
+                  transition:'all 0.2s ease',
+                }} onClick={()=>window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(loc.name+' '+loc.address+' '+loc.city), '_blank')}>
+                  {/* Icon */}
+                  <div style={{ width:80, height:80, borderRadius:12, background:'rgba(0,219,231,0.08)', border:'1px solid rgba(0,219,231,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, flexShrink:0 }}>
+                    {loc.brand==='7-Eleven'?'🧊':loc.brand==='Circle K'?'❄️':loc.brand==='ICEE'?'🌀':loc.brand==='Slush Puppie'?'🐶':'🥤'}
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                      <div>
+                        <h3 style={{ fontSize:16, fontWeight:600, color: i%2===0?'#74f5ff':'#ebb2ff', margin:0, lineHeight:1.2, fontFamily:'"Space Grotesk",system-ui,sans-serif' }}>{loc.name}</h3>
+                        <p style={{ fontSize:11, color:'#849495', margin:'3px 0 0', fontFamily:'"JetBrains Mono",monospace', letterSpacing:'.05em' }}>{loc.brand} • {loc.distance_km} km away</p>
+                      </div>
+                      <span style={{
+                        fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:999,
+                        letterSpacing:'.05em', fontFamily:'"JetBrains Mono",monospace',
+                        background: loc.machine_status==='operational' ? 'rgba(116,245,255,0.10)' : 'rgba(255,180,171,0.10)',
+                        color: loc.machine_status==='operational' ? '#74f5ff' : '#ffb4ab',
+                        border: '1px solid ' + (loc.machine_status==='operational' ? 'rgba(116,245,255,0.20)' : 'rgba(255,180,171,0.20)'),
+                      }}>
+                        {loc.machine_status==='operational' ? 'ALL GOOD' : 'ISSUE'}
+                      </span>
+                    </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:8 }}>
+                      {loc.flavours && <span style={{ fontSize:11, color:'#849495', fontFamily:'"JetBrains Mono",monospace' }}>🍒 {loc.flavours.split(',').slice(0,2).join(', ')}</span>}
+                      {!(loc as any).is_verified && <span style={{ fontSize:9, color:'#ffb400', fontFamily:'"JetBrains Mono",monospace', letterSpacing:'.04em' }}>⚠ Not verified</span>}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* BOTTOM NAV */}
+      <nav style={{ position:'fixed', bottom:0, left:0, width:'100%', zIndex:50, display:'flex', justifyContent:'space-around', alignItems:'center', padding:'0 16px 8px', height:80, background:'rgba(11,15,16,0.60)', backdropFilter:'blur(16px)', borderTop:'1px solid rgba(255,255,255,0.05)', borderRadius:'2rem 2rem 0 0' }}>
+        {[{label:'Home',icon:'⌂',href:'/',active:false},{label:'Search',icon:'🔍',href:'/search',active:true},{label:'Add Spot',icon:'➕',href:'/add',active:false},{label:'Profile',icon:'👤',href:'/profile',active:false}].map(n=>(
+          <a key={n.label} href={n.href} style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textDecoration:'none', color:n.active?'#74f5ff':'rgba(185,202,203,0.7)', gap:4, padding:'4px 12px', borderRadius:12, background:n.active?'rgba(116,245,255,0.10)':'transparent', transition:'all .15s' }}>
+            <span style={{ fontSize:22, lineHeight:1 }}>{n.icon}</span>
+            <span style={{ fontSize:9, fontWeight:500, letterSpacing:'.05em', fontFamily:'"JetBrains Mono",monospace' }}>{n.label.toUpperCase()}</span>
+          </a>
+        ))}
       </nav>
+
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:.2} }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(116,245,255,0.2); border-radius:10px; }
+      `}</style>
     </div>
   )
 }
 
 export default function SearchPage() {
-  return <Suspense><SearchPageInner /></Suspense>
+  const { Suspense } = require('react')
+  return <Suspense><SearchPageInner/></Suspense>
 }

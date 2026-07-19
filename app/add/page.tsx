@@ -1,241 +1,171 @@
 'use client'
-
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, CheckCircle } from 'lucide-react'
-import { ALL_BRANDS, BRAND_DISPLAY, detectLanguage, getStrings, SubmitLocationPayload, Strings } from '@/types'
+import Image from 'next/image'
+import ThemeToggle from '@/components/ThemeToggle'
+import { SubmitLocationPayload } from '@/types'
 
-// Full country list (ISO 3166-1 alpha-2)
 const COUNTRIES = [
-  { code:'CA', name:'Canada' }, { code:'US', name:'United States' },
-  { code:'GB', name:'United Kingdom' }, { code:'AU', name:'Australia' },
-  { code:'NZ', name:'New Zealand' }, { code:'JP', name:'Japan' },
-  { code:'KR', name:'South Korea' }, { code:'CN', name:'China' },
-  { code:'SG', name:'Singapore' }, { code:'HK', name:'Hong Kong' },
-  { code:'DE', name:'Germany' }, { code:'FR', name:'France' },
-  { code:'IT', name:'Italy' }, { code:'ES', name:'Spain' },
-  { code:'NL', name:'Netherlands' }, { code:'BE', name:'Belgium' },
-  { code:'SE', name:'Sweden' }, { code:'NO', name:'Norway' },
-  { code:'DK', name:'Denmark' }, { code:'FI', name:'Finland' },
-  { code:'PL', name:'Poland' }, { code:'CH', name:'Switzerland' },
-  { code:'AT', name:'Austria' }, { code:'PT', name:'Portugal' },
-  { code:'IE', name:'Ireland' }, { code:'MX', name:'Mexico' },
-  { code:'BR', name:'Brazil' }, { code:'AR', name:'Argentina' },
-  { code:'ZA', name:'South Africa' }, { code:'IN', name:'India' },
-  { code:'PH', name:'Philippines' }, { code:'TH', name:'Thailand' },
-  { code:'MY', name:'Malaysia' }, { code:'ID', name:'Indonesia' },
-  { code:'AE', name:'UAE' }, { code:'IL', name:'Israel' },
-  { code:'TR', name:'Türkiye' }, { code:'EG', name:'Egypt' },
-  { code:'NG', name:'Nigeria' }, { code:'ZW', name:'Zimbabwe' },
+  {code:'CA',name:'Canada'},{code:'US',name:'United States'},{code:'GB',name:'United Kingdom'},
+  {code:'AU',name:'Australia'},{code:'JP',name:'Japan'},{code:'KR',name:'South Korea'},
+  {code:'DE',name:'Germany'},{code:'FR',name:'France'},{code:'NL',name:'Netherlands'},
+  {code:'BR',name:'Brazil'},{code:'MX',name:'Mexico'},{code:'IN',name:'India'},
+  {code:'SG',name:'Singapore'},{code:'ZA',name:'South Africa'},{code:'AE',name:'UAE'},
 ]
 
-const FLAVOUR_PRESETS = [
-  '🍒 Cherry','🫐 Blue Raspberry','🍋 Lemon','🍓 Strawberry','🍉 Watermelon',
-  '🥤 Cola','🍇 Grape','🍊 Orange','🍵 Green Apple','❄️ Arctic Mint',
-  '🌶️ Mango Chili','🍑 Peach','🥝 Kiwi','🍍 Pineapple',
+const FLAVOURS = [
+  {label:'Cherry',color:'#ff4560'},{label:'Blue Raspberry',color:'#3b82f6'},
+  {label:'Lemon',color:'#eab308'},{label:'Strawberry',color:'#ec4899'},
+  {label:'Watermelon',color:'#22c55e'},{label:'Cola',color:'#b45309'},
+  {label:'Grape',color:'#a855f7'},{label:'Arctic Mint',color:'#06b6d4'},
 ]
 
 const CONDITIONS = [
-  { label:'✅ All good', type:'good', sub:'Machine working great' },
-  { label:'⚠️ Too liquidy', type:'warn', sub:'Watery or warm slushy' },
-  { label:'🥶 Too frozen', type:'warn', sub:'Very icy / hard to pour' },
-  { label:'📦 Low supply', type:'warn', sub:'Few cups or straws left' },
-  { label:'❌ Out of order', type:'bad', sub:'Machine not working' },
-  { label:'🚫 Machine gone', type:'bad', sub:'No longer at this location' },
+  '\u2705 All good \u2014 Working great',
+  '\u26a0\ufe0f Too liquidy \u2014 Watery or warm',
+  '\ud83e\udd76 Too frozen \u2014 Hard to pour',
+  '\u274c Out of order \u2014 Machine down',
 ]
 
 export default function AddPage() {
   const router = useRouter()
+  const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState('')
-  const [strings, setStrings]     = useState<Strings>(getStrings('en'))
-  const [flavours, setFlavours]   = useState<string[]>([])
-  const [customFlavour, setCustomFlavour] = useState('')
-  const [condition, setCondition] = useState<string | null>(null)
-  const [form, setForm]           = useState<Partial<SubmitLocationPayload>>({ brand: '7-Eleven' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [flavours, setFlavours] = useState<string[]>([])
+  const [condition, setCondition] = useState<string|null>(null)
+  const [form, setForm] = useState<Partial<SubmitLocationPayload>>({ brand:'7-Eleven', country_code:'CA', country_name:'Canada' })
 
-  useEffect(() => { setStrings(getStrings(detectLanguage())) }, [])
-
-  const set = (key: keyof SubmitLocationPayload, value: string) =>
-    setForm(f => ({ ...f, [key]: value }))
-
-  const addFlavour = (f: string) => {
-    if (!flavours.includes(f)) setFlavours(prev => [...prev, f])
-  }
-  const removeFlavour = (f: string) => setFlavours(prev => prev.filter(x => x !== f))
+  const set = (k: keyof SubmitLocationPayload, v: string) => setForm(f=>({...f,[k]:v}))
+  const toggleFlavour = (f: string) => setFlavours(prev=>prev.includes(f)?prev.filter(x=>x!==f):[...prev,f])
 
   const handleSubmit = async () => {
-    if (!form.name || !form.address || !form.city || !form.country_code || !form.brand) {
-      setError('Please fill in all required fields'); return
-    }
+    if (!form.name || !form.city || !form.country_code || !form.brand) { setError('Please fill in all required fields'); return }
     setLoading(true); setError('')
     try {
-      const payload = {
-        ...form,
-        flavours: flavours.join(', '),
-        machine_condition: condition ?? '',
-      }
-      const res = await fetch('/api/submit-location', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (res.ok) setSubmitted(true)
-      else { const d = await res.json(); setError(d.error ?? 'Submission failed') }
-    } catch { setError('Network error — please try again') }
+      const res = await fetch('/api/submit-location', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form, flavours:flavours.join(', '), machine_condition:condition}) })
+      const data = await res.json()
+      if (data.success) setSubmitted(true)
+      else setError(data.error ?? 'Submission failed')
+    } catch { setError('Network error') }
     finally { setLoading(false) }
   }
 
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-8 text-center bg-[#0a0c0f]">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center mb-5">
-          <CheckCircle size={30} className="text-white" />
-        </div>
-        <h2 className="text-[18px] font-black text-white mb-2 font-space">Station added!</h2>
-        <p className="text-[12px] text-slate-400 leading-relaxed mb-8 max-w-xs">
-          Your submission goes live after a quick review — usually within 24 hours.
-        </p>
-        <button onClick={() => router.push('/')}
-          className="h-11 px-8 bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-[13px] font-bold rounded-xl font-space">
-          Find more slushies
-        </button>
-      </div>
-    )
-  }
+  const F: React.CSSProperties = { width:'100%', height:48, background:'var(--s-base)', border:'1.5px solid var(--out-v)', borderRadius:12, padding:'0 14px', color:'var(--t1)', fontSize:14, boxSizing:'border-box', outline:'none', fontFamily:'inherit' }
+  const L: React.CSSProperties = { display:'block', fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--pri)', marginBottom:5, marginTop:14 }
+  const nav = [{label:'Home',icon:'\u2302',href:'/'},{label:'Search',icon:'\ud83d\udd0d',href:'/search'},{label:'Add Spot',icon:'+',href:'/add',active:true},{label:'Profile',icon:'\ud83d\udc64',href:'/profile'}]
 
-  const inp = "w-full h-11 px-3 text-[13px] border border-[#1e2840] rounded-xl bg-[#111318] text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/10 mb-4"
-  const sel = "w-full h-11 px-3 text-[13px] border border-[#1e2840] rounded-xl bg-[#111318] text-slate-200 focus:outline-none focus:border-cyan-500/50 mb-4"
-  const lbl = "block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5"
+  if (submitted) return (
+    <div style={{ background:'var(--bg)', minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'inherit', color:'var(--t1)' }}>
+      <div style={{ fontSize:64, marginBottom:16 }}>&#x1F9CA;</div>
+      <h1 style={{ fontSize:24, fontWeight:800, color:'var(--pri)', marginBottom:8 }}>Station Added!</h1>
+      <p style={{ fontSize:14, color:'var(--t2)', textAlign:'center', maxWidth:280, marginBottom:24, lineHeight:1.6 }}>Your location is now live on the map!</p>
+      <button onClick={()=>router.push('/')} style={{ height:48, padding:'0 32px', background:'var(--grad)', color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Back to Home</button>
+    </div>
+  )
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0c0f]">
-      <header className="bg-[#0a0c0f]/90 backdrop-blur-xl border-b border-[#1e2840] px-4 py-3 sticky top-0 z-10 flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-slate-400 flex items-center gap-1.5 text-[13px] hover:text-white">
-          <ArrowLeft size={18} />
-        </button>
-        <span className="text-[14px] font-bold text-white font-space">Add a Station</span>
+    <div style={{ background:'var(--bg)', minHeight:'100vh', display:'flex', flexDirection:'column', fontFamily:'"Space Grotesk",system-ui,sans-serif', color:'var(--t1)' }}>
+      <header className="topbar px-4 sticky top-0 z-20 flex items-center justify-between h-16">
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <button onClick={()=>router.back()} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--t2)', fontSize:20, padding:4 }}>&#x2190;</button>
+          <Image src="/logo.png" alt="" width={28} height={28} className="rounded-lg logo-blend"/>
+          <span style={{ fontSize:15, fontWeight:800, color:'var(--pri)' }}>Add a Station</span>
+        </div>
+        <ThemeToggle/>
       </header>
-
-      <div className="flex-1 px-4 py-5 pb-24 overflow-y-auto">
-        <p className="text-[12px] text-slate-400 mb-5 leading-relaxed">
-          Know a slushy machine not on the map? Add it here — works anywhere in the world.
-        </p>
-
-        <label className={lbl}>Store name *</label>
-        <input className={inp} type="text" placeholder="e.g. 7-Eleven — Shibuya" onChange={e => set('name', e.target.value)} />
-
-        <label className={lbl}>Street address *</label>
-        <input className={inp} type="text" placeholder="123 Main St" onChange={e => set('address', e.target.value)} />
-
-        <label className={lbl}>City *</label>
-        <input className={inp} type="text" placeholder="e.g. Tokyo" onChange={e => set('city', e.target.value)} />
-
-        <label className={lbl}>State / Province / Region</label>
-        <input className={inp} type="text" placeholder="e.g. Ontario, California, Île-de-France" onChange={e => set('region', e.target.value)} />
-
-        <label className={lbl}>Postcode / ZIP</label>
-        <input className={inp} type="text" placeholder="e.g. EC1A 1BB or 90210" onChange={e => set('postal_code', e.target.value)} />
-
-        <label className={lbl}>Country *</label>
-        <select className={sel} onChange={e => {
-          const [code, ...rest] = e.target.value.split('|')
-          set('country_code', code)
-          set('country_name', rest.join('|'))
-        }}>
-          <option value="">Select country</option>
-          {COUNTRIES.map(c => (
-            <option key={c.code} value={`${c.code}|${c.name}`}>{c.name}</option>
+      <main style={{ flex:1, padding:'20px 16px 100px', maxWidth:480, margin:'0 auto', width:'100%' }}>
+        <h1 style={{ fontSize:26, fontWeight:800, color:'var(--t1)', marginBottom:6 }}>Add a Station</h1>
+        <p style={{ fontSize:13, color:'var(--t2)', marginBottom:20, lineHeight:1.6 }}>Know a slushy machine not on the map? Add it here.</p>
+        <div style={{ display:'flex', gap:6, marginBottom:20 }}>
+          {['Location','Machine','Condition'].map((s,i)=>(
+            <div key={s} style={{ flex:1 }}>
+              <div style={{ height:4, borderRadius:999, background:i<=step?'var(--grad)':' var(--out-v)', cursor:i<step?'pointer':'default' }} onClick={()=>i<step&&setStep(i)}/>
+              <div style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'.06em', color:i<=step?'var(--pri)':'var(--t3)', marginTop:4 }}>{s}</div>
+            </div>
           ))}
-          <option value="OTHER|Other">Other country</option>
-        </select>
-
-        <label className={lbl}>Machine brand *</label>
-        <select className={sel} value={form.brand} onChange={e => set('brand', e.target.value)}>
-          {ALL_BRANDS.map(b => (
-            <option key={b} value={b}>{BRAND_DISPLAY[b]}</option>
-          ))}
-        </select>
-
-        {/* Flavours */}
-        <label className={lbl}>Available flavours</label>
-        <div className="mb-2">
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {FLAVOUR_PRESETS.map(f => (
-              <button key={f} type="button" onClick={() => addFlavour(f)}
-                className="text-[10px] px-2.5 py-1 rounded-full bg-[#111318] border border-[#1e2840] text-slate-400 hover:border-cyan-500/30 hover:text-cyan-400 transition-colors">
-                + {f}
-              </button>
-            ))}
+        </div>
+        {step===0&&(
+          <div style={{ background:'var(--s-low)', border:'1px solid var(--out-v)', borderRadius:16, padding:20 }}>
+            <div style={{ borderLeft:'3px solid var(--pri)', paddingLeft:10, marginBottom:4 }}>
+              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--pri)' }}>Store Identity</span>
+            </div>
+            <label style={L}>Store Name *</label>
+            <input value={form.name??''} onChange={e=>set('name',e.target.value)} placeholder="e.g. 7-Eleven Shibuya" style={F}/>
+            <label style={L}>Street Address</label>
+            <input value={form.address??''} onChange={e=>set('address',e.target.value)} placeholder="123 Main St" style={F}/>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div><label style={L}>City *</label><input value={form.city??''} onChange={e=>set('city',e.target.value)} placeholder="Tokyo" style={F}/></div>
+              <div><label style={L}>Postal / ZIP</label><input value={form.postal_code??''} onChange={e=>set('postal_code',e.target.value)} placeholder="L3Y 4Z1" style={F}/></div>
+            </div>
+            <label style={L}>State / Province</label>
+            <input value={form.region??''} onChange={e=>set('region',e.target.value)} placeholder="Ontario, California..." style={F}/>
+            <label style={L}>Country *</label>
+            <select value={form.country_code??'CA'} onChange={e=>{const c=COUNTRIES.find(x=>x.code===e.target.value);set('country_code',e.target.value);if(c)set('country_name',c.name)}} style={{...F,cursor:'pointer'}}>
+              {COUNTRIES.map(c=><option key={c.code} value={c.code}>{c.name}</option>)}
+            </select>
           </div>
-          {flavours.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {flavours.map(f => (
-                <button key={f} type="button" onClick={() => removeFlavour(f)}
-                  className="text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
-                  {f} ×
+        )}
+        {step===1&&(
+          <div style={{ background:'var(--s-low)', border:'1px solid var(--out-v)', borderRadius:16, padding:20 }}>
+            <div style={{ borderLeft:'3px solid var(--sec-dim)', paddingLeft:10, marginBottom:4 }}>
+              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--sec-dim)' }}>Machine Specs</span>
+            </div>
+            <label style={{...L,color:'var(--sec-dim)'}}>Machine Brand *</label>
+            <select value={form.brand??'7-Eleven'} onChange={e=>set('brand',e.target.value)} style={{...F,cursor:'pointer'}}>
+              <option value="7-Eleven">7-Eleven (Slurpee)</option>
+              <option value="Circle K">Circle K (Froster)</option>
+              <option value="Couche-Tard">Couche-Tard (Sloche)</option>
+              <option value="ICEE">ICEE</option>
+              <option value="Slush Puppie">Slush Puppie</option>
+              <option value="Slurpee Japan">Slurpee Japan</option>
+              <option value="Frosty">Frosty</option>
+              <option value="Other">Other</option>
+            </select>
+            <label style={{...L,color:'var(--sec-dim)'}}>Available Flavours</label>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:4 }}>
+              {FLAVOURS.map(f=>(
+                <button key={f.label} onClick={()=>toggleFlavour(f.label)} style={{ padding:'6px 14px', borderRadius:999, fontSize:12, fontWeight:600, cursor:'pointer', background:flavours.includes(f.label)?f.color+'22':'var(--s-base)', border:`1.5px solid ${flavours.includes(f.label)?f.color:'var(--out-v)'}`, color:flavours.includes(f.label)?f.color:'var(--t2)', display:'flex', alignItems:'center', gap:6, fontFamily:'inherit' }}>
+                  <span style={{ width:8, height:8, borderRadius:'50%', background:f.color, display:'inline-block' }}/>{f.label}
                 </button>
               ))}
             </div>
-          )}
-          <div className="flex gap-2 mb-4">
-            <input className="flex-1 h-10 px-3 text-[12px] border border-[#1e2840] rounded-xl bg-[#111318] text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50"
-              value={customFlavour} onChange={e => setCustomFlavour(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { addFlavour(customFlavour); setCustomFlavour('') }}}
-              placeholder="Other flavour…" />
-            <button type="button" onClick={() => { addFlavour(customFlavour); setCustomFlavour('') }}
-              className="h-10 px-3 rounded-xl border border-[#1e2840] text-cyan-400 text-[12px] font-bold hover:border-cyan-500/40 transition-colors">
-              Add
-            </button>
+            <label style={{...L,color:'var(--sec-dim)'}}>Notes (optional)</label>
+            <input value={form.notes??''} onChange={e=>set('notes',e.target.value)} placeholder="Location in store, access tips..." style={F}/>
           </div>
+        )}
+        {step===2&&(
+          <div style={{ background:'var(--s-low)', border:'1px solid var(--out-v)', borderRadius:16, padding:20 }}>
+            <div style={{ borderLeft:'3px solid var(--t3)', paddingLeft:10, marginBottom:12 }}>
+              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--t2)' }}>Machine Condition</span>
+            </div>
+            <p style={{ fontSize:13, color:'var(--t2)', marginBottom:12 }}>How is the machine right now?</p>
+            {CONDITIONS.map(c=>(
+              <button key={c} onClick={()=>setCondition(c)} style={{ width:'100%', padding:'12px 16px', borderRadius:12, textAlign:'left', cursor:'pointer', background:condition===c?'rgba(0,242,255,0.08)':'var(--s-base)', border:`1.5px solid ${condition===c?'var(--pri)':'var(--out-v)'}`, fontSize:13, fontWeight:600, color:'var(--t1)', fontFamily:'inherit', marginBottom:8, display:'block' }}>{c}</button>
+            ))}
+          </div>
+        )}
+        {error&&<p style={{ color:'var(--err)', fontSize:12, marginTop:12 }}>{error}</p>}
+        <div style={{ display:'flex', gap:10, marginTop:20 }}>
+          {step>0&&<button onClick={()=>setStep(s=>s-1)} style={{ flex:1, height:48, background:'var(--s-base)', border:'1.5px solid var(--out-v)', borderRadius:12, fontSize:14, fontWeight:700, color:'var(--t2)', cursor:'pointer', fontFamily:'inherit' }}>&#x2190; Back</button>}
+          {step<2
+            ?<button onClick={()=>setStep(s=>s+1)} style={{ flex:2, height:48, background:'var(--grad)', color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Continue &#x2192;</button>
+            :<button onClick={handleSubmit} disabled={loading} style={{ flex:2, height:48, background:'var(--grad)', color:'#fff', border:'none', borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', opacity:loading?0.6:1 }}>{loading ? 'Adding...' : 'Add to SlushFinder'}</button>
+          }
         </div>
-
-        {/* Condition */}
-        <label className={lbl}>Machine condition</label>
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {CONDITIONS.map(c => (
-            <button key={c.label} type="button" onClick={() => setCondition(c.label)}
-              className={`p-3 rounded-xl border text-left transition-all ${
-                condition === c.label
-                  ? c.type === 'good' ? 'border-emerald-500/60 bg-emerald-500/8'
-                  : c.type === 'warn' ? 'border-amber-500/60 bg-amber-500/8'
-                  : 'border-red-500/60 bg-red-500/8'
-                  : 'border-[#1e2840] bg-[#111318] hover:border-slate-600'
-              }`}>
-              <span className="block text-[11px] font-bold text-white mb-0.5">{c.label}</span>
-              <span className="text-[10px] text-slate-400">{c.sub}</span>
-            </button>
-          ))}
+        <div style={{ marginTop:16, padding:14, background:'var(--s-base)', borderRadius:12, border:'1px solid var(--out-v)', display:'flex', gap:10 }}>
+          <span style={{ fontSize:18, flexShrink:0 }}>&#x2139;&#xFE0F;</span>
+          <p style={{ fontSize:12, color:'var(--t3)', lineHeight:1.5 }}>Your submission goes live instantly. Users can report incorrect info.</p>
         </div>
-
-        <label className={lbl}>Notes (optional)</label>
-        <input className={inp} type="text" placeholder="Machine location in store, access tips, etc." onChange={e => set('notes', e.target.value)} />
-
-        {error && <p className="text-[12px] text-red-400 mb-3">{error}</p>}
-
-        <button onClick={handleSubmit} disabled={loading}
-          className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-[14px] font-black rounded-xl hover:opacity-90 transition-opacity disabled:opacity-60 font-space mt-1">
-          {loading ? 'Submitting…' : strings.submitStation.toUpperCase()}
-        </button>
-        <p className="text-[10px] text-slate-500 text-center mt-3 leading-relaxed">
-          Submissions are reviewed before going live. Thank you for helping build the global map.
-        </p>
-      </div>
-
-      <nav className="bg-[#0a0c0f]/95 backdrop-blur-xl border-t border-[#1e2840] flex sticky bottom-0">
-        <a href="/" className="flex-1 flex flex-col items-center gap-1 py-2.5 text-slate-500">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-          <span className="text-[9px] font-bold tracking-wider">DISCOVER</span>
-        </a>
-        <button className="flex-1 flex flex-col items-center gap-1 py-2.5 text-cyan-400">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-          <span className="text-[9px] font-bold tracking-wider">ADD</span>
-        </button>
-        <a href="/search" className="flex-1 flex flex-col items-center gap-1 py-2.5 text-slate-500">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span className="text-[9px] font-bold tracking-wider">STATIONS</span>
-        </a>
+      </main>
+      <nav className="botnav flex px-2 pb-2 pt-1 sticky bottom-0 z-20">
+        {nav.map(n=>(
+          <a key={n.label} href={n.href} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'6px 4px', textDecoration:'none', color:(n as any).active?'var(--pri)':'var(--t3)' }}>
+            <span style={{ fontSize:22, lineHeight:1 }}>{n.icon}</span>
+            <span style={{ fontSize:9, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase' }}>{n.label}</span>
+          </a>
+        ))}
       </nav>
     </div>
   )

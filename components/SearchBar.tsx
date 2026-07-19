@@ -20,7 +20,7 @@ export default function SearchBar({ onSearch, strings, compact = false, initialV
 
   const handleSearch = useCallback(async () => {
     const q = query.trim()
-    if (!q) { setError('Enter a postcode, ZIP, or city name'); return }
+    if (!q) { setError('Enter a Postal code, ZIP, or city name'); return }
     setError('')
     setSearching(true)
     const geo = await geocodeQuery(q)
@@ -47,9 +47,8 @@ export default function SearchBar({ onSearch, strings, compact = false, initialV
     return (
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
           <input
-            className="w-full h-9 pl-9 pr-3 text-[12px] bg-[#1e2229] border border-[#1e2840] rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20"
+            className="w-full h-10 pl-3 pr-3 text-[13px] bg-[#1e2229] border border-[#1e2840] rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20"
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -68,9 +67,9 @@ export default function SearchBar({ onSearch, strings, compact = false, initialV
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
           <input
-            className="w-full h-11 pl-10 pr-3 text-[14px] bg-[#1e2229] border border-[#1e2840] rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/10"
+            className="w-full h-12 pl-12 pr-3 text-[15px] bg-[#1e2229] border border-[#1e2840] rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/10"
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
