@@ -62,6 +62,7 @@ export default function LocationsAdmin() {
         <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
           <button style={{...btn(tab==='submissions'?'#00e5ff':'#849396'),background:tab==='submissions'?'rgba(0,229,255,.1)':'none'}} onClick={()=>setTab('submissions')}>📋 Submissions</button>
           <button style={{...btn(tab==='live'?'#00e5ff':'#849396'),background:tab==='live'?'rgba(0,229,255,.1)':'none'}} onClick={()=>setTab('live')}>🗺️ Live Locations</button>
+          <button style={btn('#849396')} onClick={()=>router.push('/admin/reports')}>🚩 Reports</button>
           <button style={btn('#849396')} onClick={()=>router.push('/admin/users')}>👥 Users</button>
         </div>
         <button style={{...btn('#ff4444'),marginLeft:'auto'}} onClick={async()=>{await sb.auth.signOut();router.push('/admin')}}>Log out</button>

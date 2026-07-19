@@ -53,6 +53,7 @@ export default function UsersAdmin(){
         <span style={{fontSize:20}}>🧊</span>
         <span style={{color:'#00e5ff',fontWeight:800,fontSize:14}}>Slush Finder Admin</span>
         <button style={btn('#849396')} onClick={()=>router.push('/admin/locations')}>← Locations</button>
+        <button style={btn('#849396')} onClick={()=>router.push('/admin/reports')}>🚩 Reports</button>
         <span style={{color:'#bac9cc',fontWeight:700}}>👥 Users</span>
         <button style={{...btn('#ff4444'),marginLeft:'auto'}} onClick={async()=>{await sb.auth.signOut();router.push('/admin')}}>Log out</button>
       </div>
