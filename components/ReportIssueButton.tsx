@@ -38,15 +38,15 @@ export default function ReportIssueButton({ locationId }: { locationId: string }
 
   if (done) {
     return (
-      <div className="w-full flex items-center gap-2 px-4 py-3 text-[13px] border-t"
-        style={{ borderColor: 'var(--b1)', color: 'var(--green)' }}>
+      <div className="w-full flex items-center gap-2 px-4 py-3 text-[13px]"
+        style={{ color: 'var(--green)' }}>
         <CheckCircle size={14} /> Thanks — your report will be reviewed.
       </div>
     )
   }
 
   return (
-    <div className="border-t" style={{ borderColor: 'var(--b1)' }}>
+    <div>
       <button className="w-full flex items-center gap-2 px-4 py-3 text-[13px]"
         style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontFamily: 'inherit' }}
         onClick={() => setOpen(o => !o)}>
