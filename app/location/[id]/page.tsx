@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Navigation, Share2, AlertTriangle, CheckCircle, Phone } from 'lucide-react'
 import ReportIssueButton from '@/components/ReportIssueButton'
-import { isLocationOpen, getTodaysHoursDisplay, WEEK_DAYS, formatDayHours, getTodayKey } from '@/lib/hours'
+import CheckInButton from '@/components/CheckInButton'
+import { isLocationOpen, getTodaysHoursDisplay, WEEK_DAYS, formatDayHours, getTodayKey, hasHours } from '@/lib/hours'
 import { BRAND_COLORS } from '@/types'
 
 async function getLocation(id: string) {
@@ -23,6 +24,7 @@ export default async function LocationPage({ params }: { params: Promise<{ id: s
   if (!loc.hours || typeof loc.hours !== 'object') loc.hours = {}
 
   const isOpen = isLocationOpen(loc.hours, loc.timezone)
+  const knowHours = hasHours(loc.hours)
   const todayKey = getTodayKey(loc.timezone)
   const brandColor = BRAND_COLORS[loc.brand as keyof typeof BRAND_COLORS] ?? BRAND_COLORS['Other']
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${loc.address}, ${loc.city}`)}`
@@ -44,8 +46,8 @@ export default async function LocationPage({ params }: { params: Promise<{ id: s
           <h1 className="text-[18px] font-black mb-1 leading-tight" style={{ color: 'var(--t1)' }}>{loc.name}</h1>
           <p className="text-[13px] mb-3" style={{ color: 'var(--t2)' }}>{loc.address}, {loc.city} {loc.postal_code}</p>
           <div className="flex flex-wrap gap-2">
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: isOpen ? 'rgba(10,124,78,0.1)' : 'rgba(192,57,43,0.08)', color: isOpen ? 'var(--green)' : 'var(--red)', border: `1px solid ${isOpen ? 'rgba(10,124,78,0.25)' : 'rgba(192,57,43,0.2)'}` }}>
-              {isOpen ? '● Open now' : '● Closed'}
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: !knowHours ? 'rgba(120,120,120,0.12)' : isOpen ? 'rgba(10,124,78,0.1)' : 'rgba(192,57,43,0.08)', color: !knowHours ? 'var(--t3)' : isOpen ? 'var(--green)' : 'var(--red)', border: `1px solid ${!knowHours ? 'rgba(120,120,120,0.25)' : isOpen ? 'rgba(10,124,78,0.25)' : 'rgba(192,57,43,0.2)'}` }}>
+              {!knowHours ? '● Hours unknown' : isOpen ? '● Open now' : '● Closed'}
             </span>
             <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${brandColor.bg} ${brandColor.text}`}>{loc.brand}</span>
             {loc.machine_status === 'issue_reported' && (
@@ -71,7 +73,12 @@ export default async function LocationPage({ params }: { params: Promise<{ id: s
         {/* Hours */}
         <div className="mx-4 mb-3 rounded-2xl overflow-hidden border" style={{ background: 'var(--s1)', borderColor: 'var(--b1)' }}>
           <p className="text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-2 border-b" style={{ color: 'var(--t3)', borderColor: 'var(--b1)' }}>Store hours</p>
-          {WEEK_DAYS.map(({ key, label }) => {
+          {!knowHours && (
+            <div className="px-4 py-3 text-[13px]" style={{ color: 'var(--t3)' }}>
+              Hours not yet available for this location.
+            </div>
+          )}
+          {knowHours && WEEK_DAYS.map(({ key, label }) => {
             const isToday = key === todayKey
             return (
               <div key={key} className="flex justify-between items-center px-4 py-2.5 text-[13px] border-b last:border-0" style={{ background: isToday ? 'rgba(0,122,188,0.05)' : 'transparent', borderColor: 'var(--b1)' }}>
@@ -98,6 +105,11 @@ export default async function LocationPage({ params }: { params: Promise<{ id: s
             <p className="px-4 py-3 text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{loc.notes}</p>
           </div>
         )}
+
+        {/* Check in */}
+        <div className="mx-4 mb-3 rounded-2xl overflow-hidden border" style={{ background: 'var(--s1)', borderColor: 'var(--b1)', padding: '12px' }}>
+          <CheckInButton locationId={loc.id} />
+        </div>
 
         {/* Report — always available, regardless of whether notes exist */}
         <div className="mx-4 mb-3 rounded-2xl overflow-hidden border" style={{ background: 'var(--s1)', borderColor: 'var(--b1)' }}>

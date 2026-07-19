@@ -184,7 +184,7 @@ function SearchPageInner() {
                   borderRadius:16, padding:16, marginBottom:16,
                   display:'flex', gap:16, cursor:'pointer',
                   transition:'all 0.2s ease',
-                }} onClick={()=>window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(loc.name+' '+loc.address+' '+loc.city), '_blank')}>
+                }}>
                   {/* Icon */}
                   <div style={{ width:80, height:80, borderRadius:12, background:'rgba(0,219,231,0.08)', border:'1px solid rgba(0,219,231,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, flexShrink:0 }}>
                     {loc.brand==='7-Eleven'?'🧊':loc.brand==='Circle K'?'❄️':loc.brand==='ICEE'?'🌀':loc.brand==='Slush Puppie'?'🐶':'🥤'}
@@ -209,6 +209,16 @@ function SearchPageInner() {
                     <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:8 }}>
                       {loc.flavours && <span style={{ fontSize:11, color:'#849495', fontFamily:'"JetBrains Mono",monospace' }}>🍒 {loc.flavours.split(',').slice(0,2).join(', ')}</span>}
                       {!(loc as any).is_verified && <span style={{ fontSize:9, color:'#ffb400', fontFamily:'"JetBrains Mono",monospace', letterSpacing:'.04em' }}>⚠ Not verified</span>}
+                    </div>
+                    <div style={{ display:'flex', gap:8, marginTop:12 }}>
+                      <button onClick={()=>window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(loc.name+' '+loc.address+' '+loc.city), '_blank')}
+                        style={{ flex:1, padding:'8px', borderRadius:10, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', border:'1px solid rgba(255,255,255,0.12)', background:'rgba(49,53,54,0.5)', color:'#b9cacb' }}>
+                        ↗ Directions
+                      </button>
+                      <button onClick={()=>router.push('/location/'+loc.id)}
+                        style={{ flex:1, padding:'8px', borderRadius:10, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', border:'none', background:'var(--grad, linear-gradient(90deg,#00e5ff,#9c27ff))', color:'#fff' }}>
+                        📍 Check in
+                      </button>
                     </div>
                   </div>
                 </div>

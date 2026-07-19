@@ -2,6 +2,12 @@ import { WeekHours, DayHours } from '@/types'
 
 const DAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const
 
+// True only if at least one day has real open hours set
+export function hasHours(hours: WeekHours | null | undefined): boolean {
+  if (!hours || typeof hours !== 'object') return false
+  return Object.values(hours).some((d: any) => d && d.open)
+}
+
 export function isLocationOpen(hours: WeekHours, timezone: string): boolean {
   try {
     const now = new Date()
