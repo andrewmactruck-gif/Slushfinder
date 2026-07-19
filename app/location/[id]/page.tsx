@@ -91,7 +91,7 @@ export default async function LocationPage({ params }: { params: Promise<{ id: s
           <div className="mx-4 mb-3 rounded-2xl overflow-hidden border" style={{ background: 'var(--s1)', borderColor: 'var(--b1)' }}>
             <p className="text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-2 border-b" style={{ color: 'var(--t3)', borderColor: 'var(--b1)' }}>Notes</p>
             <p className="px-4 py-3 text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{loc.notes}</p>
-            <ReportIssueButton />
+            <ReportIssueButton locationId={loc.id} />
           </div>
         )}
       </div>
