@@ -16,9 +16,11 @@ export async function POST(req: NextRequest) {
 
   // Try multiple geocoding strategies
   let geo = null
-  if (postal_code) geo = await geocodeQuery(`${postal_code} ${country_name ?? country_code}`, bias)
-  if (!geo && address) geo = await geocodeQuery(`${address} ${city} ${country_name ?? country_code}`, bias)
-  if (!geo) geo = await geocodeQuery(`${city} ${country_name ?? country_code}`, bias)
+  const cc = country_name ?? country_code
+  const reg = region ? `${region} ` : ''
+  if (postal_code) geo = await geocodeQuery(`${postal_code} ${reg}${cc}`, bias)
+  if (!geo && address) geo = await geocodeQuery(`${address}, ${city}, ${reg}${cc}`, bias)
+  if (!geo) geo = await geocodeQuery(`${city}, ${reg}${cc}`, bias)
 
   const lat = geo?.lat ?? null
   const lng = geo?.lng ?? null
