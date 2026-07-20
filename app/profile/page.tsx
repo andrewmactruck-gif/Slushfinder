@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import ThemeToggle from '@/components/ThemeToggle'
+import { PRESET_AVATARS } from '@/lib/avatars'
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -59,6 +60,12 @@ export default function ProfilePage() {
   const handleEmojiPick = async (emoji: string) => {
     if (!user) return
     await sb.from('profiles').update({ emoji, avatar_url: null }).eq('id', user.id)
+    loadProfile(user.id)
+  }
+
+  const handleAvatarPick = async (url: string) => {
+    if (!user) return
+    await sb.from('profiles').update({ avatar_url: url }).eq('id', user.id)
     loadProfile(user.id)
   }
 
@@ -169,6 +176,15 @@ export default function ProfilePage() {
               {uploading ? '…' : '📷'}
               <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display:'none' }}/>
             </label>
+          </div>
+          <div style={{ display:'flex', gap:8, marginBottom:12, overflowX:'auto', paddingBottom:4, maxWidth:'100%' }}>
+            {PRESET_AVATARS.map(url => (
+              <button key={url} onClick={()=>handleAvatarPick(url)}
+                style={{ flexShrink:0, width:52, height:52, borderRadius:'50%', overflow:'hidden', cursor:'pointer', padding:0,
+                  border:'2px solid ' + (profile?.avatar_url===url ? 'var(--cyan)' : 'var(--out-v)'), background:'var(--s-base)' }}>
+                <img src={url} alt="avatar" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+              </button>
+            ))}
           </div>
           <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap', justifyContent:'center' }}>
             {['🧊','🍒','🫐','🍋','🍇','🍉','🔥','⭐'].map(em => (

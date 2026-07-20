@@ -65,11 +65,20 @@ function SearchPageInner() {
   }, [router, unit])
 
   const handleGps = () => {
-    if (!navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(pos => {
-      const p = new URLSearchParams({ lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString(), label: 'Current location', unit: 'km' })
-      router.push('/search?' + p)
-    })
+    if (!navigator.geolocation) { alert('Location is not supported by your browser.'); return }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const p = new URLSearchParams({ lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString(), label: 'Current location', unit: 'km' })
+        router.push('/search?' + p)
+      },
+      err => {
+        if (err.code === err.PERMISSION_DENIED) alert('Location permission was denied. Please allow location access in your browser settings and try again.')
+        else if (err.code === err.POSITION_UNAVAILABLE) alert('Your location could not be determined right now. Please try again.')
+        else if (err.code === err.TIMEOUT) alert('Getting your location timed out. Please try again.')
+        else alert('Could not get your location.')
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
   }
 
   return (
@@ -84,7 +93,7 @@ function SearchPageInner() {
       {/* TOPBAR */}
       <header style={{ position:'fixed', top:0, left:0, width:'100%', zIndex:50, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0 20px', height:64, background:'rgba(16,20,21,0.40)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,255,255,0.10)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <Image src="/logo.png" alt="" width={28} height={28} className="rounded-lg logo-blend"/>
+          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={34} height={34} className="rounded-lg logo-blend"/></a>
           <span style={{ fontSize:18, fontWeight:700, letterSpacing:'-.02em', color:'#00dbe7' }}>SlushFinder</span>
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
@@ -111,7 +120,7 @@ function SearchPageInner() {
             <span style={{ color:'#849495', fontSize:16, flexShrink:0 }}>⚙</span>
           </div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(39,43,44,0.80)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:999, padding:'5px 12px' }}>
+            <div onClick={handleGps} style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(39,43,44,0.80)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:999, padding:'5px 12px', cursor:'pointer' }}>
               <span style={{ fontSize:12, color:'#74f5ff' }}>📍</span>
               <span style={{ fontSize:11, fontWeight:600, letterSpacing:'.05em', color:'#74f5ff', fontFamily:'"JetBrains Mono",monospace' }}>{label || 'Current Location'}</span>
             </div>

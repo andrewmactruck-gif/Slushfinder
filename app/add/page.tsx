@@ -70,7 +70,7 @@ export default function AddPage() {
       <header className="topbar px-4 sticky top-0 z-20 flex items-center justify-between h-16">
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <button onClick={()=>router.back()} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--t2)', fontSize:20, padding:4 }}>&#x2190;</button>
-          <Image src="/logo.png" alt="" width={28} height={28} className="rounded-lg logo-blend"/>
+          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={34} height={34} className="rounded-lg logo-blend"/></a>
           <span style={{ fontSize:15, fontWeight:800, color:'var(--pri)' }}>Add a Station</span>
         </div>
         <ThemeToggle/>
