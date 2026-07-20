@@ -18,8 +18,11 @@ export async function POST(req: NextRequest) {
   let geo = null
   const cc = country_name ?? country_code
   const reg = region ? `${region} ` : ''
-  if (postal_code) geo = await geocodeQuery(`${postal_code} ${reg}${cc}`, bias)
+  // Try the most specific query first (full street address) so we get the exact
+  // building, not a postal-code centroid. Fall back to broader queries.
+  if (address) geo = await geocodeQuery(`${address}, ${city}, ${reg}${postal_code ?? ''} ${cc}`, bias)
   if (!geo && address) geo = await geocodeQuery(`${address}, ${city}, ${reg}${cc}`, bias)
+  if (!geo && postal_code) geo = await geocodeQuery(`${postal_code} ${reg}${cc}`, bias)
   if (!geo) geo = await geocodeQuery(`${city}, ${reg}${cc}`, bias)
 
   const lat = geo?.lat ?? null
