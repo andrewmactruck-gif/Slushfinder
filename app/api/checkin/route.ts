@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
 
-  const { location_id, user_id, machine_condition, flavours_available, note } = body
+  const { location_id, user_id, machine_condition, flavours_available, note, brand, hours_text } = body
   if (!location_id) {
     return NextResponse.json({ error: 'Missing location' }, { status: 400 })
   }
@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
     last_checkin_at: new Date().toISOString(),
   }
   if (cleanFlavours) updates.flavours = cleanFlavours
+  if (typeof brand === 'string' && brand.trim()) updates.brand = brand.trim().slice(0, 60)
+  if (typeof hours_text === 'string' && hours_text.trim()) updates.hours_note = hours_text.trim().slice(0, 200)
   if (machine_condition === 'working') updates.machine_status = 'operational'
   else if (machine_condition === 'not_working') updates.machine_status = 'issue_reported'
 

@@ -16,6 +16,7 @@ export default function ReportIssueButton({ locationId }: { locationId: string }
   const [sending, setSending] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [notes, setNotes] = useState('')
 
   async function submit(reportType: string) {
     setSending(reportType)
@@ -24,7 +25,7 @@ export default function ReportIssueButton({ locationId }: { locationId: string }
       const res = await fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location_id: locationId, report_type: reportType }),
+        body: JSON.stringify({ location_id: locationId, report_type: reportType, notes }),
       })
       if (!res.ok) throw new Error('failed')
       setDone(true)
@@ -56,6 +57,8 @@ export default function ReportIssueButton({ locationId }: { locationId: string }
 
       {open && (
         <div className="pb-2">
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add details (optional)" rows={2}
+            style={{ width: 'calc(100% - 32px)', margin: '4px 16px 8px', padding: '8px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', resize: 'vertical', border: '1px solid var(--out-v)', background: 'var(--s-base)', color: 'var(--t1)' }} />
           {REASONS.map(r => (
             <button key={r.value} disabled={sending !== null}
               className="w-full text-left px-4 py-2.5 text-[13px]"

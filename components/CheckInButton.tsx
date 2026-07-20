@@ -5,6 +5,7 @@ import { MapPin, CheckCircle, X } from 'lucide-react'
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 const PRESET_FLAVOURS = ['Cherry','Blue Raspberry','Watermelon','Grape','Cola','Lemon-Lime','Orange','Strawberry','Mango']
+const BRANDS = ['Slurpee','ICEE','Slush Puppie','Froster','Sloche','Other']
 
 export default function CheckInButton({ locationId }: { locationId: string }) {
   const [open, setOpen] = useState(false)
@@ -12,6 +13,8 @@ export default function CheckInButton({ locationId }: { locationId: string }) {
   const [working, setWorking] = useState<'working' | 'not_working' | null>(null)
   const [selected, setSelected] = useState<string[]>([])
   const [other, setOther] = useState('')
+  const [brand, setBrand] = useState('')
+  const [hours, setHours] = useState('')
   const [note, setNote] = useState('')
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
@@ -35,6 +38,8 @@ export default function CheckInButton({ locationId }: { locationId: string }) {
           location_id: locationId,
           user_id: userId,
           machine_condition: working,
+          brand: brand || undefined,
+          hours_text: hours || undefined,
           flavours_available: allFlavours.join(', '),
           note,
         }),
@@ -106,6 +111,19 @@ export default function CheckInButton({ locationId }: { locationId: string }) {
 
           <div>
             <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--t3)', marginBottom: 6 }}>Note (optional)</p>
+            <div style={{ marginBottom: 14 }}>
+              <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--t3)', marginBottom: 6 }}>Brand (if different)</p>
+              <select value={brand} onChange={e => setBrand(e.target.value)}
+                style={{ width: '100%', padding: '9px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', border: '1px solid var(--out-v)', background: 'var(--s-base)', color: 'var(--t1)', cursor: 'pointer' }}>
+                <option value="">Keep current brand</option>
+                {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--t3)', marginBottom: 6 }}>Store hours (optional)</p>
+              <input value={hours} onChange={e => setHours(e.target.value)} placeholder="e.g. Mon-Fri 9-9, Sat-Sun 10-6"
+                style={{ width: '100%', padding: '9px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', border: '1px solid var(--out-v)', background: 'var(--s-base)', color: 'var(--t1)' }} />
+            </div>
             <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Anything worth mentioning?" rows={2}
               style={{ width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', resize: 'vertical',
                 border: '1px solid var(--out-v)', background: 'var(--s-base)', color: 'var(--t1)' }} />
