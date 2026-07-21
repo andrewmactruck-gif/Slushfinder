@@ -196,7 +196,7 @@ function SearchPageInner() {
                 }}>
                   {/* Icon */}
                   <div style={{ width:80, height:80, borderRadius:12, background:'rgba(0,219,231,0.08)', border:'1px solid rgba(0,219,231,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, flexShrink:0 }}>
-                    {loc.brand==='7-Eleven'?'🧊':loc.brand==='Circle K'?'❄️':loc.brand==='ICEE'?'🌀':loc.brand==='Slush Puppie'?'🐶':'🥤'}
+                    {loc.brand==='7-Eleven'?'🧊':loc.brand==='Circle K'?'❄️':loc.brand==='ICEE'?'🌀':loc.brand==='Slush Puppie'?'🐶':loc.brand==='Frazil'?'🌊':'🥤'}
                   </div>
                   {/* Info */}
                   <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between' }}>

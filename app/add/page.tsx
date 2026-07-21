@@ -119,6 +119,7 @@ export default function AddPage() {
               <option value="Couche-Tard">Couche-Tard (Sloche)</option>
               <option value="ICEE">ICEE</option>
               <option value="Slush Puppie">Slush Puppie</option>
+              <option value="Frazil">Frazil</option>
               <option value="Slurpee Japan">Slurpee Japan</option>
               <option value="Frosty">Frosty</option>
               <option value="Other">Other</option>
