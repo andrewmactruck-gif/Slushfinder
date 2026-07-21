@@ -93,7 +93,7 @@ function SearchPageInner() {
       {/* TOPBAR */}
       <header style={{ position:'fixed', top:0, left:0, width:'100%', zIndex:50, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0 20px', height:64, background:'rgba(16,20,21,0.40)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,255,255,0.10)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={34} height={34} className="rounded-lg logo-blend"/></a>
+          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={43} height={43} className="rounded-lg logo-blend"/></a>
           <span style={{ fontSize:18, fontWeight:700, letterSpacing:'-.02em', color:'#00dbe7' }}>SlushFinder</span>
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
@@ -196,7 +196,7 @@ function SearchPageInner() {
                 }}>
                   {/* Icon */}
                   <div style={{ width:80, height:80, borderRadius:12, background:'rgba(0,219,231,0.08)', border:'1px solid rgba(0,219,231,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, flexShrink:0 }}>
-                    {loc.brand==='7-Eleven'?'🧊':loc.brand==='Circle K'?'❄️':loc.brand==='ICEE'?'🌀':loc.brand==='Slush Puppie'?'🐶':loc.brand==='Frazil'?'🌊':'🥤'}
+                    {loc.brand==='7-Eleven'?'🧊':loc.brand==='Circle K'?'❄️':loc.brand==='ICEE'?'🌀':loc.brand==='Slush Puppie'?'🐶':loc.brand==='Frazil'?'🌊':loc.brand==='Restaurant'?'🍽️':'🥤'}
                   </div>
                   {/* Info */}
                   <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between' }}>

@@ -42,7 +42,7 @@ export default function HomePage() {
       </div>
       <header className="topbar px-4 sticky top-0 z-20 flex items-center justify-between h-16">
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={38} height={38} className="rounded-lg logo-blend" /></a>
+          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={48} height={48} className="rounded-lg logo-blend" /></a>
           <span style={{ fontSize:18, fontWeight:800, color:'var(--pri)' }}>SlushFinder</span>
         </div>
         <ThemeToggle />

@@ -2,7 +2,7 @@
 import { Brand } from '@/types'
 
 const COUNTRY_BRANDS: Record<string, Array<Brand | 'all'>> = {
-  CA: ['all', '7-Eleven', 'Circle K', 'Couche-Tard', 'ICEE', 'Slush Puppie', 'Frazil', 'Other'],
+  CA: ['all', '7-Eleven', 'Circle K', 'Couche-Tard', 'ICEE', 'Slush Puppie', 'Frazil', 'Restaurant', 'Other'],
   US: ['all', '7-Eleven', 'ICEE', 'Slush Puppie', 'Frazil', 'Frosty', 'Other'],
   GB: ['all', 'Slush Puppie', 'ICEE', 'Other'],
   AU: ['all', '7-Eleven', 'Slush Puppie', 'Other'],
@@ -26,6 +26,7 @@ const LABELS: Record<string, string> = {
   'Slush Puppie': '🐶 Slush Puppie',
   'Slurpee Japan':'🗾 スラーピー',
   'Frazil':       '🌊 Frazil',
+  'Restaurant':   '🍽️ Restaurant',
   'Frosty':       '🥶 Frosty',
   'Other':        '🧃 Other',
 }

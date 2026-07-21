@@ -19,6 +19,9 @@ export default function SiteFooter() {
           info@slushfinder.com
         </a>
       </div>
+      <div style={{ marginTop: 12, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', fontSize: 11, lineHeight: 1.5, color: 'var(--t3, #849495)', opacity: 0.85 }}>
+        SlushFinder is just for fun. Locations are user-submitted and may be inaccurate or out of date. Please verify a location before visiting, and always use your own judgment to stay safe.
+      </div>
     </footer>
   )
 }

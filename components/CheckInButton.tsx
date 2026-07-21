@@ -5,7 +5,7 @@ import { MapPin, CheckCircle, X } from 'lucide-react'
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 const PRESET_FLAVOURS = ['Cherry','Blue Raspberry','Watermelon','Grape','Cola','Lemon-Lime','Orange','Strawberry','Mango']
-const BRANDS = ['Slurpee','ICEE','Slush Puppie','Froster','Sloche','Frazil','Other']
+const BRANDS = ['Slurpee','ICEE','Slush Puppie','Froster','Sloche','Frazil','Restaurant','Other']
 
 export default function CheckInButton({ locationId }: { locationId: string }) {
   const [open, setOpen] = useState(false)

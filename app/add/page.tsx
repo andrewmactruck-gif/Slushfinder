@@ -106,7 +106,7 @@ export default function AddPage() {
       <header className="topbar px-4 sticky top-0 z-20 flex items-center justify-between h-16">
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <button onClick={()=>router.back()} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--t2)', fontSize:20, padding:4 }}>&#x2190;</button>
-          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={34} height={34} className="rounded-lg logo-blend"/></a>
+          <a href="/" style={{display:"inline-flex",lineHeight:0}}><Image src="/logo.png" alt="Home" width={43} height={43} className="rounded-lg logo-blend"/></a>
           <span style={{ fontSize:15, fontWeight:800, color:'var(--pri)' }}>Add a Station</span>
         </div>
         <ThemeToggle/>
@@ -169,6 +169,7 @@ export default function AddPage() {
               <option value="ICEE">ICEE</option>
               <option value="Slush Puppie">Slush Puppie</option>
               <option value="Frazil">Frazil</option>
+              <option value="Restaurant">Restaurant (makes their own)</option>
               <option value="Slurpee Japan">Slurpee Japan</option>
               <option value="Frosty">Frosty</option>
               <option value="Other">Other</option>

@@ -34,11 +34,12 @@ export type Brand =
   | 'Icee UK'
   | 'Froster'
   | 'Frazil'
+  | 'Restaurant'
   | 'Other'
 
 export const ALL_BRANDS: Brand[] = [
   '7-Eleven', 'Circle K', 'Couche-Tard', 'ICEE', 'Slush Puppie',
-  'Slurpee', 'Frosty', 'Slurpee Japan', 'Icee UK', 'Froster', 'Frazil', 'Other',
+  'Slurpee', 'Frosty', 'Slurpee Japan', 'Icee UK', 'Froster', 'Frazil', 'Restaurant', 'Other',
 ]
 
 export const BRAND_DISPLAY: Record<Brand, string> = {
@@ -52,6 +53,7 @@ export const BRAND_DISPLAY: Record<Brand, string> = {
   'Slurpee Japan':'Slurpee Japan (スラーピー)',
   'Icee UK':      'ICEE UK',
   'Frazil':       'Frazil',
+  'Restaurant':   'Restaurant',
   'Froster':      'Froster',
   'Other':        'Other / Independent',
 }
@@ -67,6 +69,7 @@ export const BRAND_COLORS: Record<Brand, { bg: string; text: string }> = {
   'Slurpee Japan':{ bg: 'bg-red-900/40',    text: 'text-red-300' },
   'Icee UK':      { bg: 'bg-blue-900/40',   text: 'text-blue-300' },
   'Frazil':       { bg: 'bg-cyan-900/40',   text: 'text-cyan-300' },
+  'Restaurant':   { bg: 'bg-amber-900/40',  text: 'text-amber-300' },
   'Froster':      { bg: 'bg-orange-900/40', text: 'text-orange-300' },
   'Other':        { bg: 'bg-slate-800',      text: 'text-slate-300' },
 }

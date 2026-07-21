@@ -91,8 +91,8 @@ body{background:var(--bg);color:var(--t1)}
 .tier-verified{color:#00dbe7}.tier-elite{color:#b600f8}.tier-super{color:#00f2ff}
 .light .tier-verified{color:#00696f}.light .tier-elite{color:#8127cf}.light .tier-super{color:#00696f}
 
-.logo-blend{mix-blend-mode:screen}
-.light .logo-blend{mix-blend-mode:multiply}
+.logo-blend{}
+.light .logo-blend{}
 
 @media(max-width:480px){input,select,textarea{font-size:16px!important}body{font-size:15px}}
 html,body{overflow-x:hidden;max-width:100vw}
