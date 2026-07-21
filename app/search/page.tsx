@@ -24,6 +24,7 @@ function SearchPageInner() {
   const [brand, setBrand] = useState<Brand|'all'>('all')
   const [radius, setRadius] = useState(25)
   const [openNow, setOpenNow] = useState(false)
+  const [sortBy, setSortBy] = useState<'nearest'|'popular'>('nearest')
   const [unit, setUnit] = useState<DistanceUnit>(initUnit)
   const [strings, setStrings] = useState<Strings>(getStrings('en'))
   const [collapsed, setCollapsed] = useState(false)
@@ -164,6 +165,9 @@ function SearchPageInner() {
               <button onClick={()=>setOpenNow(o=>!o)} style={{ padding:'6px 12px', borderRadius:10, fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', border:'1px solid '+(openNow?'#74f5ff':'rgba(255,255,255,0.10)'), background:openNow?'rgba(116,245,255,0.10)':'rgba(49,53,54,0.5)', color:openNow?'#74f5ff':'#b9cacb' }}>
                 Open now
               </button>
+              <button onClick={()=>setSortBy(s=>s==='nearest'?'popular':'nearest')} style={{ padding:'6px 12px', borderRadius:10, fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', border:'1px solid '+(sortBy==='popular'?'#ebb2ff':'rgba(255,255,255,0.10)'), background:sortBy==='popular'?'rgba(235,178,255,0.10)':'rgba(49,53,54,0.5)', color:sortBy==='popular'?'#ebb2ff':'#b9cacb' }}>
+                {sortBy==='popular'?'★ Popular':'⌖ Nearest'}
+              </button>
             </div>
           </div>
 
@@ -185,7 +189,7 @@ function SearchPageInner() {
                 <p style={{ fontSize:13, lineHeight:1.6 }}>Try expanding your radius or <a href="/add" style={{ color:'#74f5ff' }}>add a location</a>.</p>
               </div>
             ) : (
-              locations.map((loc, i) => (
+              [...locations].sort((a,b)=> sortBy==='popular' ? ((b as any).checkin_count??0)-((a as any).checkin_count??0) : 0).map((loc, i) => (
                 <div key={loc.id} style={{
                   background:'rgba(28,32,33,0.40)', backdropFilter:'blur(12px)',
                   border:'1px solid rgba(255,255,255,0.10)',
@@ -203,7 +207,7 @@ function SearchPageInner() {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                       <div>
                         <h3 style={{ fontSize:16, fontWeight:600, color: i%2===0?'#74f5ff':'#ebb2ff', margin:0, lineHeight:1.2, fontFamily:'"Space Grotesk",system-ui,sans-serif' }}>{loc.name}</h3>
-                        <p style={{ fontSize:11, color:'#849495', margin:'3px 0 0', fontFamily:'"JetBrains Mono",monospace', letterSpacing:'.05em' }}>{loc.brand} • {loc.distance_km} km away</p>
+                        <p style={{ fontSize:11, color:'#849495', margin:'3px 0 0', fontFamily:'"JetBrains Mono",monospace', letterSpacing:'.05em' }}>{loc.brand} • {loc.distance_km} km away{((loc as any).checkin_count??0)>0 ? ' • 📍 '+(loc as any).checkin_count+' check-in'+((loc as any).checkin_count!==1?'s':'') : ''}</p>
                       </div>
                       <span style={{
                         fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:999,
