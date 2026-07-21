@@ -38,6 +38,42 @@ export default function AddPage() {
   const [form, setForm] = useState<Partial<SubmitLocationPayload>>({ brand:'7-Eleven', country_code:'CA', country_name:'Canada' })
 
   const set = (k: keyof SubmitLocationPayload, v: string) => setForm(f=>({...f,[k]:v}))
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
+  const [showSug, setShowSug] = useState(false)
+  const searchTimer = (globalThis as any)._sfTimer
+
+  const onAddressType = (v: string) => {
+    set('address', v)
+    setShowSug(true)
+    if ((globalThis as any)._sfTimer) clearTimeout((globalThis as any)._sfTimer)
+    if (v.trim().length < 4) { setSuggestions([]); return }
+    ;(globalThis as any)._sfTimer = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const cc = form.country_code || ''
+        const res = await fetch(`/api/address-search?q=${encodeURIComponent(v)}&cc=${cc}`)
+        const d = await res.json()
+        setSuggestions(d.results || [])
+      } catch { setSuggestions([]) }
+      setSearching(false)
+    }, 500)
+  }
+
+  const pickSuggestion = (sug: any) => {
+    setForm(f => ({ ...f,
+      address: sug.address || f.address,
+      city: sug.city || f.city,
+      region: sug.region || f.region,
+      postal_code: sug.postal_code || f.postal_code,
+      country_code: sug.country_code || f.country_code,
+      country_name: sug.country_name || f.country_name,
+      latitude: sug.latitude,
+      longitude: sug.longitude,
+    }))
+    setSuggestions([])
+    setShowSug(false)
+  }
   const toggleFlavour = (f: string) => setFlavours(prev=>prev.includes(f)?prev.filter(x=>x!==f):[...prev,f])
 
   const handleSubmit = async () => {
@@ -94,7 +130,20 @@ export default function AddPage() {
             <label style={L}>Store Name *</label>
             <input value={form.name??''} onChange={e=>set('name',e.target.value)} placeholder="e.g. 7-Eleven Shibuya" style={F}/>
             <label style={L}>Street Address</label>
-            <input value={form.address??''} onChange={e=>set('address',e.target.value)} placeholder="123 Main St" style={F}/>
+            <div style={{ position:'relative' }}>
+              <input value={form.address??''} onChange={e=>onAddressType(e.target.value)} onFocus={()=>setShowSug(true)} placeholder="Start typing address…" style={F} autoComplete="off"/>
+              {showSug && (suggestions.length>0 || searching) && (
+                <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:50, background:'var(--s-base)', border:'1px solid var(--out-v)', borderRadius:10, marginTop:4, overflow:'hidden', boxShadow:'0 8px 24px rgba(0,0,0,0.4)' }}>
+                  {searching && <div style={{ padding:'10px 12px', fontSize:12, color:'var(--t3)' }}>Searching…</div>}
+                  {!searching && suggestions.map((sug,i)=>(
+                    <div key={i} onClick={()=>pickSuggestion(sug)} style={{ padding:'10px 12px', fontSize:12, color:'var(--t1)', cursor:'pointer', borderBottom:'1px solid var(--out-v)' }}
+                      onMouseDown={e=>e.preventDefault()}>
+                      📍 {sug.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
               <div><label style={L}>City *</label><input value={form.city??''} onChange={e=>set('city',e.target.value)} placeholder="Tokyo" style={F}/></div>
               <div><label style={L}>Postal / ZIP</label><input value={form.postal_code??''} onChange={e=>set('postal_code',e.target.value)} placeholder="L3Y 4Z1" style={F}/></div>

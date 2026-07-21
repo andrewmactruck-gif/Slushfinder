@@ -41,17 +41,32 @@ export default function BrandFilter({ active, onChange, country }: Props) {
   const allowed = COUNTRY_BRANDS[cc] ?? COUNTRY_BRANDS.DEFAULT
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar px-4">
-      {allowed.map(brand => (
-        <button key={brand} onClick={() => onChange(brand)}
-          className={`shrink-0 h-7 px-3 rounded-full text-[11px] font-semibold border transition-colors ${
-            active === brand
-              ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white border-transparent'
-              : 'bg-[#1e2229] text-slate-400 border-[#1e2840] hover:border-cyan-500/30 hover:text-cyan-400'
-          }`}>
-          {LABELS[brand] ?? brand}
-        </button>
-      ))}
+    <div className="px-4">
+      <select
+        value={active}
+        onChange={e => onChange(e.target.value as Brand | 'all')}
+        style={{
+          width: '100%',
+          maxWidth: 260,
+          height: 34,
+          padding: '0 12px',
+          borderRadius: 999,
+          fontSize: 12,
+          fontWeight: 600,
+          fontFamily: 'inherit',
+          cursor: 'pointer',
+          color: active === 'all' ? '#b9cacb' : '#fff',
+          background: active === 'all' ? 'rgba(28,32,33,0.6)' : 'linear-gradient(90deg,#00b4cc,#9c27ff)',
+          border: '1px solid ' + (active === 'all' ? 'rgba(255,255,255,0.12)' : 'transparent'),
+          outline: 'none',
+        }}
+      >
+        {allowed.map(brand => (
+          <option key={brand} value={brand} style={{ color: '#111', background: '#fff' }}>
+            {LABELS[brand] ?? brand}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }
