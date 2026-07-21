@@ -15,6 +15,8 @@ export default function LocationsAdmin() {
   const [loading,setLoading] = useState(true)
   const [toast,setToast] = useState('')
   const [expanded,setExpanded] = useState<string|null>(null)
+  const [editForm,setEditForm] = useState<any>({})
+  const [savingEdit,setSavingEdit] = useState(false)
   const [verifying,setVerifying] = useState<string|null>(null)
   const showToast=(msg:string)=>{setToast(msg);setTimeout(()=>setToast(''),3000)}
   const load=useCallback(async()=>{
@@ -49,6 +51,22 @@ export default function LocationsAdmin() {
     const token=await getToken()
     await fetch('/api/admin/locations?id='+id+'&table='+table+'&soft='+soft,{method:'DELETE',headers:ah(token)})
     showToast(soft?'🙈 Hidden':'🗑️ Deleted');load()
+  }
+
+  const openEdit=(loc:any)=>{
+    setExpanded(expanded===loc.id?null:loc.id)
+    setEditForm({ id:loc.id, name:loc.name, brand:loc.brand, address:loc.address, city:loc.city, region:loc.region, country_code:loc.country_code, country_name:loc.country_name, flavours:loc.flavours??'', hours_note:loc.hours_note??'', machine_status:loc.machine_status, latitude:loc.latitude, longitude:loc.longitude, _origAddress:loc.address })
+  }
+  const setEf=(k:string,v:any)=>setEditForm((f:any)=>({...f,[k]:v}))
+  const saveEdit=async()=>{
+    setSavingEdit(true)
+    const token=await getToken()
+    const regeocode = editForm.address !== editForm._origAddress
+    const res=await fetch('/api/admin/locations',{method:'PUT',headers:ah(token),body:JSON.stringify({...editForm, regeocode})})
+    const d=await res.json()
+    setSavingEdit(false)
+    if(d.success){showToast('✅ Saved');setExpanded(null);load()}
+    else showToast('Error: '+(d.error||'save failed'))
   }
   const btn=(c='#00e5ff')=>({background:'none',border:'1px solid '+c,borderRadius:7,color:c,padding:'5px 11px',fontSize:11,fontWeight:700,cursor:'pointer'})
   const inp={background:'#1c2021',border:'1px solid #3b494c',borderRadius:9,padding:'7px 11px',color:'#fff',fontSize:12,outline:'none',fontFamily:'inherit'}
@@ -103,15 +121,31 @@ export default function LocationsAdmin() {
                   {expanded===sub.id&&<tr key={sub.id+'e'}><td colSpan={7} style={{padding:12,background:'#0d1117',borderBottom:'1px solid rgba(59,73,76,.4)'}}><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:10}}>{[['Address',sub.address],['Flavours',sub.flavours??'—'],['Notes',sub.notes??'—'],['Coords',sub.latitude?sub.latitude.toFixed(4)+', '+sub.longitude?.toFixed(4):'None'],['OSM Match',sub.osm_matched_name??'—'],['Reason',sub.verification_reason??'Not checked']].map(([k,v])=><div key={k}><div style={{fontSize:9,fontWeight:700,color:'#849396',textTransform:'uppercase',marginBottom:2}}>{k}</div><div style={{fontSize:11,color:'#bac9cc'}}>{v}</div></div>)}</div>{sub.latitude&&<a href={'https://www.google.com/maps/search/?api=1&query='+sub.latitude+','+sub.longitude} target="_blank" rel="noreferrer" style={{color:'#00e5ff',fontSize:11,display:'inline-block',marginTop:8}}>📍 Google Maps →</a>}</td></tr>}
                   </>
                 )):live.map(loc=>(
-                  <tr key={loc.id}>
+                  <>
+                  <tr key={loc.id} style={{cursor:'pointer'}} onClick={()=>openEdit(loc)}>
                     <td style={{...td,color:'#fff',fontWeight:600}}>{loc.name}</td>
                     <td style={td}>{loc.city}, {loc.country_code}</td>
                     <td style={td}>{loc.brand}</td>
                     <td style={td}><div style={{display:'flex',alignItems:'center',gap:5}}><div style={{width:50,height:5,background:'#1c2021',borderRadius:10,overflow:'hidden'}}><div style={{width:Math.min(loc.checkin_count??0,100)+'%',height:'100%',background:'linear-gradient(90deg,#00e5ff,#9c27ff)',borderRadius:10}}/></div><span style={{fontSize:12,fontWeight:700,color:'#00e5ff'}}>{loc.checkin_count??0}</span></div></td>
                     <td style={td}>{loc.slush_tier??'new'}</td>
                     <td style={td}><span style={{padding:'2px 8px',borderRadius:20,fontSize:10,fontWeight:700,background:loc.machine_status==='operational'?'rgba(0,238,152,.1)':'rgba(255,68,68,.1)',color:loc.machine_status==='operational'?'#00ee98':'#ff4444',border:'1px solid '+(loc.machine_status==='operational'?'rgba(0,238,152,.3)':'rgba(255,68,68,.3)')}}>{loc.machine_status}</span></td>
-                    <td style={td}><div style={{display:'flex',gap:4}}><button style={btn('#ffb400')} onClick={()=>del(loc.id,'locations',true)}>🙈 Hide</button><button style={btn('#ff4444')} onClick={()=>del(loc.id,'locations')}>🗑️ Del</button></div></td>
+                    <td style={td}><div style={{display:'flex',gap:4}}><button style={btn('#00e5ff')} onClick={e=>{e.stopPropagation();openEdit(loc)}}>✏️ Edit</button><button style={btn('#ffb400')} onClick={e=>{e.stopPropagation();del(loc.id,'locations',true)}}>🙈 Hide</button><button style={btn('#ff4444')} onClick={e=>{e.stopPropagation();del(loc.id,'locations')}}>🗑️ Del</button></div></td>
                   </tr>
+                  {expanded===loc.id&&<tr><td colSpan={7} style={{padding:14,background:'#0d1117'}}><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10}}>
+{[['name','Name'],['brand','Brand'],['address','Address'],['city','City'],['region','Region'],['flavours','Flavours'],['hours_note','Hours (text)'],['latitude','Latitude'],['longitude','Longitude']].map(([k,label])=>(
+  <div key={k}><div style={{fontSize:9,fontWeight:700,color:'#849396',textTransform:'uppercase',marginBottom:3}}>{label}</div>
+  <input value={editForm[k]??''} onChange={e=>setEf(k,e.target.value)} style={{...inp,width:'100%'}} onClick={e=>e.stopPropagation()}/></div>
+))}
+<div><div style={{fontSize:9,fontWeight:700,color:'#849396',textTransform:'uppercase',marginBottom:3}}>Status</div>
+<select value={editForm.machine_status??'operational'} onChange={e=>setEf('machine_status',e.target.value)} onClick={e=>e.stopPropagation()} style={{...inp,width:'100%',cursor:'pointer'}}>
+<option value="operational">operational</option><option value="issue_reported">issue_reported</option><option value="removed">removed</option></select></div>
+</div>
+<div style={{display:'flex',gap:8,marginTop:12,alignItems:'center'}}>
+<button disabled={savingEdit} style={btn('#00ee98')} onClick={e=>{e.stopPropagation();saveEdit()}}>{savingEdit?'Saving…':'💾 Save changes'}</button>
+<button style={btn('#849396')} onClick={e=>{e.stopPropagation();setExpanded(null)}}>Cancel</button>
+<span style={{fontSize:10,color:'#849396'}}>Changing the address will re-locate the map pin automatically. Leave lat/lng to auto, or type them to override.</span>
+</div></td></tr>}
+                  </>
                 ))}
                 {!items.length&&tab==='submissions'&&<tr><td colSpan={7} style={{...td,textAlign:'center',padding:32,color:'#849396'}}>No submissions yet</td></tr>}
                 {!live.length&&tab==='live'&&<tr><td colSpan={7} style={{...td,textAlign:'center',padding:32,color:'#849396'}}>No live locations</td></tr>}
