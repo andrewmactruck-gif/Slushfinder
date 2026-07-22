@@ -59,6 +59,19 @@ export default function ProfilePage() {
     }
   }
 
+  const [editingNick, setEditingNick] = useState(false)
+  const [nickInput, setNickInput] = useState('')
+  const [nickErr, setNickErr] = useState('')
+  const handleNicknameSave = async () => {
+    const name = nickInput.trim()
+    if (name.length < 2 || name.length > 24) { setNickErr('2-24 characters'); return }
+    if (!/^[A-Za-z0-9 _-]+$/.test(name)) { setNickErr('Letters, numbers, spaces only'); return }
+    if (!user) return
+    setNickErr('')
+    await sb.from('profiles').update({ username: name }).eq('id', user.id)
+    setEditingNick(false)
+    loadProfile(user.id)
+  }
   const handleEmojiPick = async (emoji: string) => {
     if (!user) return
     await sb.from('profiles').update({ emoji, avatar_url: null }).eq('id', user.id)
@@ -193,7 +206,21 @@ export default function ProfilePage() {
               <button key={em} onClick={()=>handleEmojiPick(em)} style={{ fontSize:18, width:34, height:34, borderRadius:8, border:'1px solid var(--out-v)', background: profile?.emoji===em && !profile?.avatar_url ? 'var(--pri)' : 'var(--s-base)', cursor:'pointer' }}>{em}</button>
             ))}
           </div>
-          <h1 style={{ fontSize:20, fontWeight:800, color:'var(--t1)', marginBottom:2 }}>{profile?.username?`@${profile.username}`:user.email?.split('@')[0]}</h1>
+          {editingNick ? (
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, marginBottom:6 }}>
+              <input value={nickInput} onChange={e=>setNickInput(e.target.value)} placeholder="Your nickname" autoFocus
+                style={{ fontSize:16, fontWeight:700, textAlign:'center', padding:'6px 12px', borderRadius:10, border:'1px solid var(--out-v)', background:'var(--s-base)', color:'var(--t1)', fontFamily:'inherit', maxWidth:220 }}/>
+              {nickErr && <span style={{ fontSize:11, color:'var(--red,#ff6b6b)' }}>{nickErr}</span>}
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={handleNicknameSave} style={{ fontSize:12, fontWeight:700, padding:'5px 14px', borderRadius:8, border:'none', background:'var(--grad,linear-gradient(90deg,#00e5ff,#9c27ff))', color:'#fff', cursor:'pointer', fontFamily:'inherit' }}>Save</button>
+                <button onClick={()=>{setEditingNick(false);setNickErr('')}} style={{ fontSize:12, fontWeight:700, padding:'5px 14px', borderRadius:8, border:'1px solid var(--out-v)', background:'none', color:'var(--t2)', cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <h1 onClick={()=>{setNickInput(profile?.username||'');setEditingNick(true)}} style={{ fontSize:20, fontWeight:800, color:'var(--t1)', marginBottom:2, cursor:'pointer' }} title="Tap to edit nickname">
+              {profile?.username?`@${profile.username}`:user.email?.split('@')[0]} <span style={{ fontSize:13 }}>✏️</span>
+            </h1>
+          )}
           {profile?.city && <p style={{ fontSize:12, color:'var(--t3)', display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>📍 {profile.city}</p>}
           <div style={{ background:'var(--s-base)', borderRadius:999, padding:'6px 16px', display:'inline-flex', alignItems:'center', gap:8, border:'1px solid var(--out-v)' }}>
             <span style={{ fontSize:10, fontWeight:700, color:'var(--sec-dim)', textTransform:'uppercase' }}>Level 1</span>
