@@ -5,7 +5,7 @@ import { SubmitLocationPayload } from '@/types'
 
 export async function POST(req: NextRequest) {
   const body: SubmitLocationPayload = await req.json()
-  const { name, address, city, region, postal_code, country_code, country_name, brand, notes, flavours } = body
+  const { name, address, city, region, postal_code, country_code, country_name, brand, notes, flavours, added_by } = body
 
   if (!name || !city || !country_code || !brand) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
 
   // Always save to submissions
   await db.from('location_submissions').insert({
+    added_by: added_by ?? null,
     name, address: address ?? '', city,
     region: region ?? '', postal_code: postal_code ?? '',
     country_code: country_code.toUpperCase(),
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
   // Always insert to live locations table
   // If no coordinates, we still insert — admin can fix coords later
   const { error: locErr } = await db.from('locations').insert({
+    added_by: added_by ?? null,
     name,
     address: address ?? '',
     city,

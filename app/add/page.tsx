@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import ThemeToggle from '@/components/ThemeToggle'
 import { SubmitLocationPayload } from '@/types'
+import { createClient } from '@supabase/supabase-js'
+const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 const COUNTRIES = [
   {code:'CA',name:'Canada'},{code:'US',name:'United States'},{code:'GB',name:'United Kingdom'},
@@ -80,7 +82,8 @@ export default function AddPage() {
     if (!form.name || !form.city || !form.country_code || !form.brand) { setError('Please fill in all required fields'); return }
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/submit-location', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form, flavours:flavours.join(', '), machine_condition:condition}) })
+      const { data:{ user } } = await sb.auth.getUser()
+      const res = await fetch('/api/submit-location', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form, flavours:flavours.join(', '), machine_condition:condition, added_by:user?.id ?? null}) })
       const data = await res.json()
       if (data.success) setSubmitted(true)
       else setError(data.error ?? 'Submission failed')

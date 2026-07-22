@@ -141,6 +141,7 @@ export interface SearchResult {
 
 // ── Submission ────────────────────────────────────────────
 export interface SubmitLocationPayload {
+  added_by?: string | null
   name: string
   address: string
   city: string

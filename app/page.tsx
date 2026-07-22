@@ -13,6 +13,8 @@ export default function HomePage() {
   const [gpsLoading, setGpsLoading] = useState(false)
   const [error, setError] = useState('')
   const [strings, setStrings] = useState<Strings>(getStrings('en'))
+  const [topUsers, setTopUsers] = useState<any[]>([])
+  useEffect(()=>{ fetch('/api/leaderboard').then(r=>r.json()).then(d=>setTopUsers((d.leaderboard||[]).slice(0,10))).catch(()=>{}) },[])
   useEffect(() => { setStrings(getStrings(detectLanguage())) }, [])
   const handleSearch = useCallback(async () => {
     const q = query.trim()
@@ -83,6 +85,26 @@ export default function HomePage() {
             <div style={{ fontSize:12, color:'var(--t3)' }}>Navigate now</div>
           </button>
         </div>
+        {topUsers.length>0 && (
+          <div style={{ padding:'0 16px 24px' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+              <span style={{ fontSize:15, fontWeight:800, color:'var(--pri)' }}>🏆 Top Slushers</span>
+              <a href="/leaderboard" style={{ fontSize:11, color:'var(--cyan,#00b4cc)', textDecoration:'none' }}>View all →</a>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {topUsers.map((u:any)=>(
+                <div key={u.user_id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', borderRadius:12, background:'var(--s1,rgba(28,32,33,0.5))', border:'1px solid var(--b1,rgba(255,255,255,0.06))' }}>
+                  <span style={{ width:22, textAlign:'center', fontWeight:800, fontSize:u.rank<=3?16:12, color:'var(--t2)' }}>{u.rank===1?'🥇':u.rank===2?'🥈':u.rank===3?'🥉':u.rank}</span>
+                  <div style={{ width:30, height:30, borderRadius:'50%', overflow:'hidden', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background:'var(--s-base,#222)', fontSize:15 }}>
+                    {u.avatar_url ? <img src={u.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : u.emoji}
+                  </div>
+                  <span style={{ flex:1, fontSize:13, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{u.username}</span>
+                  <span style={{ fontSize:14, fontWeight:800, color:'var(--cyan,#00b4cc)' }}>{u.points}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
       <nav className="botnav flex px-2 pb-2 pt-1 sticky bottom-0 z-20">
         {[{label:'Home',icon:'⌂',href:'/',active:true},{label:'Search',icon:'🔍',href:'/search'},{label:'Add Spot',icon:'➕',href:'/add'},{label:'Profile',icon:'👤',href:'/profile'}].map(n=>(

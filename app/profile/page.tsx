@@ -12,12 +12,14 @@ export default function ProfilePage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
+  const [myStats, setMyStats] = useState<any>(null)
   const [tab, setTab] = useState<'saved'|'flavours'|'activity'>('saved')
   const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
   const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
   const [authErr, setAuthErr] = useState('')
   const [loading, setLoading] = useState(true)
+  useEffect(()=>{ if(!user) return; fetch('/api/leaderboard').then(r=>r.json()).then(d=>{ const row=(d.leaderboard||[]).find((x:any)=>x.user_id===user.id); setMyStats(row||{points:0,checkins:0,adds:0,rank:null}) }).catch(()=>{}) },[user])
 
   useEffect(() => {
     sb.auth.getUser().then(({ data: { user } }) => {
@@ -88,7 +90,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => { await sb.auth.signOut(); setUser(null); setProfile(null) }
 
-  const nav = [{label:'Home',icon:'⌂',href:'/'},{label:'Search',icon:'🔍',href:'/search'},{label:'Add Spot',icon:'➕',href:'/add'},{label:'Profile',icon:'👤',href:'/profile',active:true}]
+  const nav = [{label:'Home',icon:'⌂',href:'/'},{label:'Search',icon:'🔍',href:'/search'},{label:'Add Spot',icon:'➕',href:'/add'},{label:'Ranks',icon:'🏆',href:'/leaderboard'},{label:'Profile',icon:'👤',href:'/profile',active:true}]
   const BottomNav = () => (
     <nav className="botnav flex px-2 pb-2 pt-1 sticky bottom-0 z-20">
       {nav.map(n=>(
@@ -216,7 +218,33 @@ export default function ProfilePage() {
         </div>
         {tab==='saved'&&<div style={{ textAlign:'center', padding:'32px 0', color:'var(--t3)', fontSize:13 }}><div style={{ fontSize:32, marginBottom:8 }}>🧊</div>Save slushie spots to see them here.</div>}
         {tab==='flavours'&&<div style={{ textAlign:'center', padding:'32px 0', color:'var(--t3)', fontSize:13 }}><div style={{ fontSize:32, marginBottom:8 }}>🍒</div>Add favourite flavours for personalized picks.</div>}
-        {tab==='activity'&&<div style={{ textAlign:'center', padding:'32px 0', color:'var(--t3)', fontSize:13 }}><div style={{ fontSize:32, marginBottom:8 }}>📍</div>Your check-ins will appear here.</div>}
+        {tab==='activity'&&(myStats ? (
+          <div style={{ padding:'8px 0' }}>
+            <div style={{ display:'flex', gap:10, marginBottom:12 }}>
+              <div style={{ flex:1, textAlign:'center', padding:'16px 8px', borderRadius:14, background:'rgba(0,219,231,0.06)', border:'1px solid rgba(0,219,231,0.2)' }}>
+                <div style={{ fontSize:26, fontWeight:800, color:'var(--cyan,#00b4cc)' }}>{myStats.points}</div>
+                <div style={{ fontSize:11, color:'var(--t3)' }}>points</div>
+              </div>
+              <div style={{ flex:1, textAlign:'center', padding:'16px 8px', borderRadius:14, background:'var(--s1,#1a1e1f)', border:'1px solid var(--b1,rgba(255,255,255,0.06))' }}>
+                <div style={{ fontSize:26, fontWeight:800, color:'var(--t1)' }}>{myStats.rank?('#'+myStats.rank):'—'}</div>
+                <div style={{ fontSize:11, color:'var(--t3)' }}>rank</div>
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:10, marginBottom:16 }}>
+              <div style={{ flex:1, textAlign:'center', padding:'12px 8px', borderRadius:14, background:'var(--s1,#1a1e1f)', border:'1px solid var(--b1,rgba(255,255,255,0.06))' }}>
+                <div style={{ fontSize:20, fontWeight:800 }}>{myStats.checkins}</div>
+                <div style={{ fontSize:11, color:'var(--t3)' }}>check-ins</div>
+              </div>
+              <div style={{ flex:1, textAlign:'center', padding:'12px 8px', borderRadius:14, background:'var(--s1,#1a1e1f)', border:'1px solid var(--b1,rgba(255,255,255,0.06))' }}>
+                <div style={{ fontSize:20, fontWeight:800 }}>{myStats.adds}</div>
+                <div style={{ fontSize:11, color:'var(--t3)' }}>added</div>
+              </div>
+            </div>
+            <button onClick={()=>router.push('/leaderboard')} style={{ width:'100%', padding:'11px', borderRadius:10, background:'var(--grad,linear-gradient(90deg,#00e5ff,#9c27ff))', color:'#fff', border:'none', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>🏆 View full leaderboard</button>
+          </div>
+        ) : (
+          <div style={{ textAlign:'center', padding:'32px 0', color:'var(--t3)', fontSize:13 }}><div style={{ fontSize:32, marginBottom:8 }}>📍</div>Check in somewhere to start earning points!</div>
+        ))}
       </main>
       <BottomNav/>
     </div>
