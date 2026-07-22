@@ -36,6 +36,7 @@ export default function AddPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [flavours, setFlavours] = useState<string[]>([])
+  const [otherFlavours, setOtherFlavours] = useState('')
   const [condition, setCondition] = useState<string|null>(null)
   const [form, setForm] = useState<Partial<SubmitLocationPayload>>({ brand:'7-Eleven', country_code:'CA', country_name:'Canada' })
 
@@ -83,7 +84,7 @@ export default function AddPage() {
     setLoading(true); setError('')
     try {
       const { data:{ user } } = await sb.auth.getUser()
-      const res = await fetch('/api/submit-location', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form, flavours:flavours.join(', '), machine_condition:condition, added_by:user?.id ?? null}) })
+      const res = await fetch('/api/submit-location', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form, flavours:[...flavours, ...otherFlavours.split(',').map(x=>x.trim()).filter(Boolean)].join(', '), machine_condition:condition, added_by:user?.id ?? null}) })
       const data = await res.json()
       if (data.success) setSubmitted(true)
       else setError(data.error ?? 'Submission failed')
@@ -185,6 +186,7 @@ export default function AddPage() {
                 </button>
               ))}
             </div>
+            <input value={otherFlavours} onChange={e=>setOtherFlavours(e.target.value)} placeholder="Other flavours (comma separated)" style={{...F, marginBottom:14}}/>
             <label style={{...L,color:'var(--sec-dim)'}}>Notes (optional)</label>
             <input value={form.notes??''} onChange={e=>set('notes',e.target.value)} placeholder="Location in store, access tips..." style={F}/>
           </div>
