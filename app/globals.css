@@ -142,3 +142,9 @@ html,body{overflow-x:hidden;max-width:100vw}
     padding: 0 !important;
   }
 }
+
+/* Crowd-sourced note: stacks below hero on mobile, floats right on desktop */
+.crowd-note{position:relative;margin-bottom:16px;text-align:left;max-width:100%;z-index:2}
+@media (min-width:900px){
+  .crowd-note{position:absolute;top:20px;right:20px;max-width:280px;text-align:right;margin-bottom:0}
+}

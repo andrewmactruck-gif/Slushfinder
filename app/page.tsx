@@ -63,7 +63,7 @@ export default function HomePage() {
         <div style={{ padding:'0 16px 16px' }}>
           <div style={{ borderRadius:20, overflow:'hidden', position:'relative', background:'linear-gradient(160deg,rgba(0,242,255,0.08),rgba(182,0,248,0.06))', border:'1px solid var(--frost)', padding:24, minHeight:200, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,rgba(0,242,255,0.05) 0%,rgba(182,0,248,0.08) 100%)', borderRadius:20 }}/>
-            <div style={{ position:'absolute', top:20, right:20, maxWidth:280, textAlign:'right', zIndex:2 }}>
+            <div className="crowd-note">
               <div style={{ fontSize:15, fontWeight:800, color:'var(--t1)', lineHeight:1.35, marginBottom:8 }}>🍧 The more you share, the sweeter the map!</div>
               <div style={{ fontSize:12, color:'var(--t2)', lineHeight:1.4, marginBottom:8 }}>Slush Finder is crowd-sourced — every spot you add makes it better.</div>
               {spotCount!==null && <div style={{ display:'inline-block', fontSize:12, fontWeight:700, color:'var(--pri)', background:'rgba(0,242,255,0.10)', border:'1px solid var(--frost)', borderRadius:999, padding:'4px 12px' }}>❄️ {spotCount} spot{spotCount!==1?'s':''} and growing!</div>}
