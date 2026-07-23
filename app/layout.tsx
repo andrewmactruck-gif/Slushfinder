@@ -49,6 +49,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#00dbe7" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="SlushFinder" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-82GG8GLG22" />
         <script dangerouslySetInnerHTML={{ __html: `
