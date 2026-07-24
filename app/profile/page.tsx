@@ -64,11 +64,16 @@ export default function ProfilePage() {
   const [nickErr, setNickErr] = useState('')
   const handleNicknameSave = async () => {
     const name = nickInput.trim()
-    if (name.length < 2 || name.length > 24) { setNickErr('2-24 characters'); return }
-    if (!/^[A-Za-z0-9 _-]+$/.test(name)) { setNickErr('Letters, numbers, spaces only'); return }
+    if (name.length < 3 || name.length > 20) { setNickErr('Must be 3-20 characters'); return }
+    if (!/^[A-Za-z0-9_-]+$/.test(name)) { setNickErr('Letters, numbers, _ and - only (no spaces)'); return }
     if (!user) return
     setNickErr('')
-    await sb.from('profiles').update({ username: name }).eq('id', user.id)
+    const { error } = await sb.from('profiles').update({ username: name }).eq('id', user.id)
+    if (error) {
+      if (error.code === '23505' || /duplicate|unique/i.test(error.message || '')) setNickErr('That nickname is taken — try another')
+      else setNickErr(error.message || 'Could not save nickname')
+      return
+    }
     setEditingNick(false)
     loadProfile(user.id)
   }
