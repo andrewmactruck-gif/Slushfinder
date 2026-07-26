@@ -85,7 +85,7 @@ export default function SlushyMap({ locations, center, onSelectLocation }: Props
 
     // User location marker (blue dot)
     const userIcon = L.divIcon({
-      html: `<div style="width:14px;height:14px;background:#185FA5;border:3px solid white;border-radius:50%;box-shadow:0 0 0 4px rgba(24,95,165,0.25)"></div>`,
+      html: `<div style="width:14px;height:14px;background:#EF4444;border:3px solid white;border-radius:50%;box-shadow:0 0 0 4px rgba(239,68,68,0.25)"></div>`,
       iconSize: [14, 14],
       iconAnchor: [7, 7],
       className: '',
@@ -109,7 +109,7 @@ export default function SlushyMap({ locations, center, onSelectLocation }: Props
       const icon = L.divIcon({
         html: `<div style="
           width:28px;height:28px;
-          background:${color};
+          background:#00b4cc;
           border:2.5px solid white;
           border-radius:50% 50% 50% 0;
           transform:rotate(-45deg);
