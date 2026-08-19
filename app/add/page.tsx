@@ -44,6 +44,33 @@ export default function AddPage() {
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
   const [showSug, setShowSug] = useState(false)
+  const [gpsBusy, setGpsBusy] = useState(false)
+  const getMyLocation = () => {
+    if (!navigator.geolocation) { setError('Location not available on this device'); return }
+    setGpsBusy(true); setError('')
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude
+      setForm(f => ({ ...f, latitude: lat, longitude: lng }))
+      // bonus: reverse-geocode to fill address/city (optional, non-blocking)
+      try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, { headers: { 'Accept': 'application/json' } })
+        const d = await r.json()
+        const a = d.address || {}
+        setForm(f => ({ ...f,
+          address: f.address || [a.house_number, a.road].filter(Boolean).join(' '),
+          city: f.city || a.city || a.town || a.village || a.hamlet || '',
+          region: f.region || a.state || '',
+          postal_code: f.postal_code || a.postcode || '',
+          country_code: (a.country_code || f.country_code || 'CA').toUpperCase(),
+          country_name: a.country || f.country_name || 'Canada',
+        }))
+      } catch {}
+      setGpsBusy(false)
+    }, () => {
+      setGpsBusy(false)
+      setError('Could not get your location — check location permissions')
+    }, { enableHighAccuracy: true, timeout: 10000 })
+  }
   const searchTimer = (globalThis as any)._sfTimer
 
   const onAddressType = (v: string) => {
@@ -80,7 +107,8 @@ export default function AddPage() {
   const toggleFlavour = (f: string) => setFlavours(prev=>prev.includes(f)?prev.filter(x=>x!==f):[...prev,f])
 
   const handleSubmit = async () => {
-    if (!form.name || !form.city || !form.country_code || !form.brand) { setError('Please fill in all required fields'); return }
+    if (!form.name || !form.brand) { setError('Please enter the store name and brand'); return }
+    if (!form.latitude || !form.longitude) { setError('Tap \'Use My Location\' or pick an address so we can place it on the map'); return }
     setLoading(true); setError('')
     try {
       const { data:{ user } } = await sb.auth.getUser()
@@ -133,7 +161,11 @@ export default function AddPage() {
             </div>
             <label style={L}>Store Name *</label>
             <input value={form.name??''} onChange={e=>set('name',e.target.value)} placeholder="e.g. 7-Eleven Shibuya" style={F}/>
-            <label style={L}>Street Address</label>
+            <button type="button" onClick={getMyLocation} disabled={gpsBusy} style={{ width:'100%', height:48, marginTop:14, background: (form.latitude ? 'rgba(29,158,117,0.15)' : 'var(--grad)'), color: (form.latitude ? '#1D9E75' : '#fff'), border: (form.latitude ? '1.5px solid #1D9E75' : 'none'), borderRadius:12, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              <span>📍</span>{gpsBusy ? 'Getting your location…' : (form.latitude ? '✓ Location captured — tap to update' : 'Use My Location')}
+            </button>
+            <p style={{ fontSize:11, color:'var(--t3)', marginTop:6, marginBottom:0 }}>Standing at the machine? Tap above — no need to type an address.</p>
+            <label style={L}>Street Address <span style={{ color:'var(--t3)', fontWeight:400, textTransform:'none' }}>(optional)</span></label>
             <div style={{ position:'relative' }}>
               <input value={form.address??''} onChange={e=>onAddressType(e.target.value)} onFocus={()=>setShowSug(true)} placeholder="Start typing address…" style={F} autoComplete="off"/>
               {showSug && (suggestions.length>0 || searching) && (
@@ -149,7 +181,7 @@ export default function AddPage() {
               )}
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              <div><label style={L}>City *</label><input value={form.city??''} onChange={e=>set('city',e.target.value)} placeholder="Tokyo" style={F}/></div>
+              <div><label style={L}>City</label><input value={form.city??''} onChange={e=>set('city',e.target.value)} placeholder="Tokyo" style={F}/></div>
               <div><label style={L}>Postal / ZIP</label><input value={form.postal_code??''} onChange={e=>set('postal_code',e.target.value)} placeholder="L3Y 4Z1" style={F}/></div>
             </div>
             <label style={L}>State / Province</label>

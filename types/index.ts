@@ -141,6 +141,8 @@ export interface SearchResult {
 
 // ── Submission ────────────────────────────────────────────
 export interface SubmitLocationPayload {
+  latitude?: number | null
+  longitude?: number | null
   added_by?: string | null
   name: string
   address: string
