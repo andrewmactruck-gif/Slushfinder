@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
 
   // Always save to submissions
   await db.from('location_submissions').insert({
-    added_by: added_by ?? null,
     name, address: address ?? '', city,
     region: region ?? '', postal_code: postal_code ?? '',
     country_code: country_code.toUpperCase(),
